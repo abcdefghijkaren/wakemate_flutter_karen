@@ -1,4 +1,10 @@
 {
+  "languageSetting": "Language",
+  "languageTraditionalChinese": "Traditional Chinese",
+  "languageEnglish": "English",
+  "languageIndonesian": "Bahasa Indonesia",
+
+
   "@@locale": "en",
   "languageSettingsTitle": "Language Settings",
   "selectYourLanguage": "Select Your Language",
@@ -14,5 +20,347 @@
   "caffeineLog": "Caffeine Log",
   "inputHistory": "Input History",
   "calculateRecommendation": "Calculate",
-  "recommendationHistory": "History"
+  "recommendationHistory": "History",
+
+  "alertnessTestTitle": "Alertness Test",
+  "tapToStart": "Tap to Start",
+  "pleaseWait": "Please wait...",
+  "pleaseTap": "Tap now!",
+  "tapTooSoon": "❌ Too early! Try again",
+  "testResult": "Test Results",
+  "reactionTimesLabel": "Reaction times:",
+  "reactionTimeTrial": "Trial {trial}: {milliseconds} ms",
+  "@reactionTimeTrial": {
+    "placeholders": {
+      "trial": {
+        "type": "int"
+      },
+      "milliseconds": {
+        "type": "int"
+      }
+    }
+  },
+  "averageReactionTime": "Average reaction time: {avg} ms",
+  "@averageReactionTime": {
+    "placeholders": {
+      "avg": {
+        "type": "String"
+      }
+    }
+  },
+  "selectKssLevel": "Select your alertness level (KSS):",
+  "chooseKssScore": "Select KSS score",
+  "testAgain": "Test Again",
+  "finishAndClose": "Finish and Close",
+  "dataSentSuccess": "Data sent successfully!",
+  "submitFailed": "Failed to submit. Status code: {statusCode}",
+  "@submitFailed": {
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "networkErrorCannotSubmit": "Network error. Unable to submit data",
+  "tapHere": "Tap Here",
+  "startTest": "Start Test",
+  "kssLevel1": "Extremely alert",
+  "kssLevel2": "Very alert",
+  "kssLevel3": "Alert",
+  "kssLevel4": "Rather alert",
+  "kssLevel5": "Neither alert nor sleepy",
+  "kssLevel6": "Some signs of sleepiness",
+  "kssLevel7": "Sleepy, but no effort needed to keep awake",
+  "kssLevel8": "Sleepy, some effort to keep awake",
+  "kssLevel9": "Very sleepy, great effort to keep awake, fighting sleep",
+
+  "personalBodyData": "Personal Body Data",
+  "logout": "Log Out",
+
+  "userDefaultName": "User",
+  "enterEmailAndPassword": "Please enter your email and password",
+  "loginSuccess": "Login successful!",
+  "loginSuccessButNoUserId": "Login successful, but failed to retrieve user ID",
+  "loginFailed": "Login failed: incorrect email or password",
+  "unknownServerError": "An unknown server error occurred",
+  "loginFailedWithReason": "Login failed: {errorMsg}",
+  "@loginFailedWithReason": {
+    "placeholders": {
+      "errorMsg": {
+        "type": "String"
+      }
+    }
+  },
+  "loginFailedInvalidResponse": "Login failed: invalid server response",
+  "networkErrorCannotConnectServer": "Error: Unable to connect to the server",
+  "welcomeBack": "Welcome back",
+  "loginTitle": "Sign In",
+  "loginDescription": "Please enter your email and password",
+  "email": "Email",
+  "password": "Password",
+  "login": "Log In",
+  "noAccount": "Don't have an account?",
+  "registerNow": "Sign up",
+
+  "registerAccount": "Register Account",
+  "createAccount": "Create Account",
+  "register": "Sign Up",
+  "registerSuccess": "Registration successful! Please log in",
+  "emailExists": "This email is already registered",
+  "registerFailed": "Registration failed",
+  "name": "Name",
+  "fillAllFields": "Please fill in all fields",
+  "invalidEmail": "Invalid email format",
+
+  "personalBodyData": "Personal Body Data",
+  "gender": "Gender",
+  "male": "Male",
+  "female": "Female",
+  "age": "Age",
+  "enterAge": "Please enter your age",
+  "ageRequired": "Age is required",
+  "invalidAge": "Please enter a valid age",
+  "heightCm": "Height (cm)",
+  "enterHeight": "Please enter your height",
+  "heightRequired": "Height is required",
+  "invalidHeight": "Please enter a valid height",
+  "weightKg": "Weight (kg)",
+  "enterWeight": "Please enter your weight",
+  "weightRequired": "Weight is required",
+  "invalidWeight": "Please enter a valid weight",
+  "bmi": "BMI",
+  "autoCalculateBMI": "Your BMI will be calculated automatically",
+  "saveSettings": "Save Settings",
+  "saving": "Saving...",
+  "saveSuccess": "Settings saved successfully!",
+  "saveFailed": "Failed to save",
+  "loadFailed": "Failed to load data",
+  "completeRequiredFieldsAndGender": "Please complete all required fields and select a gender",
+  "errorPrefix": "Error",
+
+  "addCaffeineLog": "Add Caffeine Log",
+  "caffeineDescription": "Record your caffeine intake for personalized recommendations",
+  "caffeineAmount": "Caffeine Amount (mg)",
+  "caffeineExample": "e.g. 150",
+  "drinkName": "Drink Name",
+  "drinkExample": "e.g. Latte",
+  "takingTime": "Intake Time",
+  "saveCaffeineLog": "Save Caffeine Log",
+  "fillAllFields": "Please fill in all fields",
+  "invalidCaffeine": "Caffeine must be a positive number",
+  "saveSuccess": "Saved successfully",
+  "saveFailed": "Failed to save",
+  "errorOccurred": "Error: {error}",
+  "defaultDrink": "Coffee",
+
+
+  "addActualSleepTime": "Add Actual Sleep Time",
+  "actualSleepTimeDescription": "Please enter the actual time you fell asleep and the time you woke up to record your full sleep cycle.",
+  "sleepStartTimePick": "Sleep start time (tap to select)",
+  "sleepEndTimePick": "Sleep end time (tap to select)",
+  "sleepStartExample": "Example: 2025-11-05 23:00",
+  "sleepEndExample": "Example: 2025-11-06 07:00",
+  "saveSleepCycle": "Save Sleep Cycle",
+  "sleepPleaseSelectStartAndEndTime": "Please select the sleep start and end times.",
+  "sleepEndCannotBeEarlierThanStart": "The end time cannot be earlier than the start time. Please check the date and time.",
+  "sleepTooLongOver48Hours": "Sleep duration is too long (over 48 hours). Please confirm.",
+  "sleepInvalidTimeFormat": "Invalid time format. Please select again.",
+  "sleepSaveFailedWithReason": "Failed to save sleep record: {statusCode}\nResponse: {responseBody}",
+  "@sleepSaveFailedWithReason": {
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      },
+      "responseBody": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepSaveSuccessWithDuration": "Sleep record saved successfully!\n😴 Total duration: {hours} hour(s) {minutes} minute(s)",
+  "@sleepSaveSuccessWithDuration": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepDurationCalculationFailed": "Data format error. Unable to calculate or save the duration.",
+  "noResponseContent": "No response content",
+  "errorOccurred": "An error occurred: {error}",
+  "@errorOccurred": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+
+
+  "wakePageTitle": "Set Target Wake Period",
+  "wakeDescription": "Enter the time periods you want to stay alert.",
+  "wakeFillAllTimeSlots": "Please fill all time slots.",
+  "wakeEndBeforeStart": "End time cannot be earlier than start time.",
+  "wakeInvalidTimeFormat": "Invalid time format",
+  "wakeSingleSlotFailed": "Slot {index} failed (status: {status})",
+  "wakeSaveAllSuccess": "Saved {count} slots successfully",
+  "wakePartialSuccess": "{success} success, {fail} failed",
+  "wakeAllFailed": "All submissions failed",
+  "wakeSlotTitle": "Wake Slot #{index}",
+  "startTime": "Start Time",
+  "endTime": "End Time",
+  "addTimeSlot": "Add Slot",
+  "saveWakeTime": "Save Wake Period",
+  "timeExampleStart": "e.g. 05:00",
+  "timeExampleEnd": "e.g. 06:00",
+
+
+
+  "userInputHistoryTitle": "{date} Input History",
+  "@userInputHistoryTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "loadingUserInputData": "Loading input data for this day...",
+  "userInputLoadError": "An error occurred while loading input history:\n{error}",
+  "@userInputLoadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "returnHomeAndAddRecord": "Please return to the home page, tap the \"Add Record\" button, and select the corresponding period to record.",
+  "noUserInputOnThisDay": "There is no input record for this day.",
+  "yourInputHistory": "Your Input History",
+  "actualSleepCycle": "Actual Sleep Cycle",
+  "noActualSleepRecord": "No actual sleep record",
+  "targetWakePeriod": "Target Wake Period",
+  "noTargetWakePeriodRecord": "No target wake period record",
+  "caffeineIntake": "Caffeine Intake",
+  "noCaffeineIntakeRecord": "No caffeine intake record",
+  "startTime": "Start Time",
+  "endTime": "End Time",
+  "totalDuration": "Total Duration",
+  "durationHoursMinutes": "{hours} hr {minutes} min",
+  "@durationHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "intakeTime": "Intake Time",
+  "contentLabel": "Content",
+  "unknownDrink": "Unknown Drink",
+  "notAvailable": "N/A",
+  "drinkWithAmount": "{name} ({amount} mg)",
+  "@drinkWithAmount": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+
+
+
+  "caffeineHistoryTitle": "{date} Recommendation",
+  "caffeineSuggestionIndex": "Suggestion #{index}",
+  "activeStatus": "Active",
+  "expiredStatus": "Expired",
+  "recommendedTime": "Recommended Time",
+  "recommendedAmount": "Recommended Amount",
+  "updatedTime": "Updated At",
+  "noCaffeineHistory": "No recommendation for {date}",
+  "clickToGenerate": "Tap below to generate caffeine recommendation",
+  "recalculate": "Recalculate",
+  "formatError": "Format Error",
+  "amountMg": "{amount} mg",
+
+
+
+  "caffeineRecommendationPageTitle": "Caffeine Recommendation",
+
+  "recommendationDataFormatError": "Invalid recommendation format",
+  "recommendationParseFailed": "Failed to parse recommendation: {error}\nRaw: {raw}",
+  "@recommendationParseFailed": {
+    "placeholders": {
+      "error": {},
+      "raw": {}
+    }
+  },
+
+  "recommendationUpdatedButNotificationFailed": "Recommendation updated but notification scheduling failed",
+
+  "noNewRecommendationData": "No new recommendation available",
+  "noNewRecommendationDataMessage": "No new recommendation available.",
+
+  "calculationFailedWithStatus": "Calculation failed: {status}",
+  "@calculationFailedWithStatus": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+
+  "serverErrorWithPreview": "Server error (Status: {status})\nResponse preview: {preview}",
+  "@serverErrorWithPreview": {
+    "placeholders": {
+      "status": {},
+      "preview": {}
+    }
+  },
+
+  "timeoutCheckNetwork": "Request timeout. Please check your connection.",
+  "connectionTimedOut": "Connection timed out. Please try again.",
+
+  "networkConnectionError": "Network error. Please check your connection.",
+  "cannotConnectToServer": "Unable to connect to server.",
+
+  "unknownError": "Unknown error: {error}",
+  "@unknownError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+
+  "wakemateRecommendationGenerated": "WAKEMATE Recommendation Ready",
+  "recommendationGeneratedBody": "Take {amount} mg caffeine at {time}",
+  "@recommendationGeneratedBody": {
+    "placeholders": {
+      "time": {},
+      "amount": {}
+    }
+  },
+
+  "wakemateCaffeineReminder": "WAKEMATE Reminder",
+  "caffeineReminderBody": "Take {amount} mg caffeine at {time}",
+  "@caffeineReminderBody": {
+    "placeholders": {
+      "time": {},
+      "amount": {}
+    }
+  },
+
+  "analyzingCaffeineData": "Analyzing caffeine data...",
+  "thisMayTakeSomeTimePleaseWait": "This may take a moment, please wait",
+
+  "oopsCalculationFailed": "Oops! Calculation failed",
+  "retry": "Retry",
+  "backToHomePage": "Back to Home"
+
+
+
 }

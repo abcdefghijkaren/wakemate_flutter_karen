@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert'; // 必須導入 'dart:convert' 才能使用 utf8.decode
+import 'dart:convert';
 import 'dart:async';
 import 'package:intl/intl.dart';
+import 'package:my_app/gen_l10n/app_localizations.dart';
 
-// --- 數據模型 (與 CaffeineHistoryPage 共享) ---
+// --- 數據模型 ---
 class UserDayData {
-  final List<dynamic> wakePeriods; // 目標清醒時段
-  final List<dynamic> sleepCycles; // 睡眠時段
-  final List<dynamic> caffeineIntakes; // 咖啡因攝取
+  final List<dynamic> wakePeriods;
+  final List<dynamic> sleepCycles;
+  final List<dynamic> caffeineIntakes;
 
   UserDayData({
     required this.wakePeriods,
@@ -35,14 +36,12 @@ class UserInputHistoryPage extends StatefulWidget {
 }
 
 class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
-  // 定義顏色和樣式
   final Color _primaryColor = const Color(0xFF1F3D5B);
   final Color _accentColor = const Color(0xFF5E91B3);
   final Color _backgroundColor = const Color(0xFFF0F2F5);
   final Color _cardColor = Colors.white;
   final Color _textColor = const Color(0xFF424242);
-  final String baseUrl =
-      'https://wakemate-api-4-0.onrender.com'; // API Base URL
+  final String baseUrl = 'https://wakemate-api-4-0.onrender.com';
 
   late Future<UserDayData> _userDataFuture;
 
@@ -52,29 +51,31 @@ class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
     _userDataFuture = _fetchUserInputHistory();
   }
 
-  // --- 數據獲取和過濾邏輯 ---
-
-  // ✅ 修正點：在這裡扣除 8 小時
   DateTime? _parseAndLocalize(String? datetimeStr) {
     if (datetimeStr == null || datetimeStr.isEmpty) return null;
     try {
-      // 1. 先解析 API 回傳的 UTC 時間字串
-      final parsedTime = DateTime.parse(datetimeStr);
-      // 2. 轉換為本地時間 (這一步會自動 +8 小時)
-      final localTime = parsedTime.toLocal();
-      // 3. 根據您的要求，手動減去 8 小時來修正
-      return localTime.subtract(const Duration(hours: 8));
+      return DateTime.parse(datetimeStr).toLocal();
     } catch (e) {
-      print('Error parsing or adjusting time: $e');
+      print('Error parsing time: $e');
       return null;
     }
   }
 
-  bool _isDateInRange(DateTime dateTime, DateTime dateStart, DateTime dateEnd) {
-    return dateTime.isAfter(
-          dateStart.subtract(const Duration(milliseconds: 1)),
-        ) &&
-        dateTime.isBefore(dateEnd);
+  bool _isPointInSelectedDate(
+    DateTime point,
+    DateTime dateStart,
+    DateTime dateEnd,
+  ) {
+    return !point.isBefore(dateStart) && point.isBefore(dateEnd);
+  }
+
+  bool _doesRangeOverlapSelectedDate(
+    DateTime start,
+    DateTime end,
+    DateTime dateStart,
+    DateTime dateEnd,
+  ) {
+    return start.isBefore(dateEnd) && end.isAfter(dateStart);
   }
 
   Future<List<dynamic>> _fetchData(
@@ -84,41 +85,30 @@ class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
   ) async {
     try {
       final url = '$baseUrl/$endpoint/?user_id=$userId&date=$dateQuery';
-      final response = await http
-          .get(Uri.parse(url))
-          .timeout(const Duration(seconds: 10));
+      final response =
+          await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
-        // 🚨 修正點：使用 response.bodyBytes 和 utf8.decode 進行強制 UTF-8 解碼
         final String decodedBody = utf8.decode(response.bodyBytes);
         return json.decode(decodedBody) as List<dynamic>;
       } else {
-        // 🚨 修正點：錯誤訊息也需要解碼
         final String decodedErrorBody = utf8.decode(response.bodyBytes);
         print('API Error for $endpoint: ${response.statusCode}');
         print('API Error Body: $decodedErrorBody');
-        // 如果 API 返回 404/204 等表示無數據的狀態碼，可以視為空列表
         return [];
       }
     } catch (e) {
       print('Network Error for $endpoint: $e');
-      // 如果發生網路錯誤，拋出錯誤，讓 FutureBuilder 處理
-      throw Exception('無法連線到 $endpoint: $e');
+      throw Exception('Failed to connect to $endpoint: $e');
     }
   }
 
-  /// 實際從 API 獲取使用者輸入歷史數據
   Future<UserDayData> _fetchUserInputHistory() async {
     final dateQuery = DateFormat('yyyy-MM-dd').format(widget.selectedDate);
     final userId = widget.userId;
 
-    // 同時發送三個請求
     final List<List<dynamic>> rawResults = await Future.wait([
-      _fetchData(
-        'users_wake',
-        userId,
-        dateQuery,
-      ).catchError((_) => []), // 捕獲錯誤，返回空列表
+      _fetchData('users_wake', userId, dateQuery).catchError((_) => []),
       _fetchData('users_sleep', userId, dateQuery).catchError((_) => []),
       _fetchData('users_intake', userId, dateQuery).catchError((_) => []),
     ]);
@@ -127,7 +117,6 @@ class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
     final rawSleepCycles = rawResults[1];
     final rawCaffeineIntakes = rawResults[2];
 
-    // --- 數據過濾 (本地時間篩選) ---
     final dateStart = DateTime(
       widget.selectedDate.year,
       widget.selectedDate.month,
@@ -135,32 +124,48 @@ class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
     );
     final dateEnd = dateStart.add(const Duration(days: 1));
 
-    // 喚醒時段 (以 target_start_time 判斷)
     final filteredWake =
         rawWakePeriods.where((item) {
-          final localStart = _parseAndLocalize(
-            item['target_start_time'] as String?,
+          final localStart =
+              _parseAndLocalize(item['target_start_time'] as String?);
+          final localEnd =
+              _parseAndLocalize(item['target_end_time'] as String?);
+
+          if (localStart == null || localEnd == null) return false;
+
+          return _doesRangeOverlapSelectedDate(
+            localStart,
+            localEnd,
+            dateStart,
+            dateEnd,
           );
-          return localStart != null &&
-              _isDateInRange(localStart, dateStart, dateEnd);
         }).toList();
 
-    // 睡眠週期 (以 sleep_end_time 判斷屬於哪一天)
     final filteredSleep =
         rawSleepCycles.where((item) {
-          final localEnd = _parseAndLocalize(item['sleep_end_time'] as String?);
-          return localEnd != null &&
-              _isDateInRange(localEnd, dateStart, dateEnd);
+          final localStart =
+              _parseAndLocalize(item['sleep_start_time'] as String?);
+          final localEnd =
+              _parseAndLocalize(item['sleep_end_time'] as String?);
+
+          if (localStart == null || localEnd == null) return false;
+
+          return _doesRangeOverlapSelectedDate(
+            localStart,
+            localEnd,
+            dateStart,
+            dateEnd,
+          );
         }).toList();
 
-    // 咖啡因攝取 (以 taking_timestamp 判斷)
     final filteredIntake =
         rawCaffeineIntakes.where((item) {
-          final localTake = _parseAndLocalize(
-            item['taking_timestamp'] as String?,
-          );
-          return localTake != null &&
-              _isDateInRange(localTake, dateStart, dateEnd);
+          final localTake =
+              _parseAndLocalize(item['taking_timestamp'] as String?);
+
+          if (localTake == null) return false;
+
+          return _isPointInSelectedDate(localTake, dateStart, dateEnd);
         }).toList();
 
     return UserDayData(
@@ -169,8 +174,6 @@ class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
       caffeineIntakes: filteredIntake,
     );
   }
-
-  // --- UI 建構區塊 (其餘保持不變) ---
 
   Widget _buildDataRow({
     required IconData icon,
@@ -275,7 +278,11 @@ class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
     );
   }
 
-  Widget _buildEmptySection(IconData icon, String message) {
+  Widget _buildEmptySection(
+    IconData icon,
+    String message,
+    String subMessage,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 16),
       child: Column(
@@ -293,7 +300,7 @@ class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            "請返回首頁，點擊「新增紀錄」按鈕，選擇對應時段進行記錄。",
+            subMessage,
             style: TextStyle(fontSize: 14, color: _textColor.withOpacity(0.5)),
             textAlign: TextAlign.center,
           ),
@@ -304,15 +311,15 @@ class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    final String formattedDate = DateFormat(
-      'yyyy/MM/dd',
-    ).format(widget.selectedDate);
+    final loc = AppLocalizations.of(context)!;
+    final String formattedDate =
+        DateFormat('yyyy/MM/dd').format(widget.selectedDate);
 
     return Scaffold(
       backgroundColor: _backgroundColor,
       appBar: AppBar(
         title: Text(
-          "$formattedDate 輸入歷史",
+          loc.userInputHistoryTitle(formattedDate),
           style: TextStyle(color: _primaryColor, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -335,14 +342,18 @@ class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
                 children: [
                   CircularProgressIndicator(color: _primaryColor),
                   const SizedBox(height: 16),
-                  Text("正在載入該日輸入數據...", style: TextStyle(color: _textColor)),
+                  Text(
+                    loc.loadingUserInputData,
+                    style: TextStyle(color: _textColor),
+                  ),
                 ],
               ),
             );
           } else if (snapshot.hasError) {
             return _buildEmptySection(
               Icons.error_outline,
-              "載入輸入歷史時發生錯誤：\n${snapshot.error}",
+              loc.userInputLoadError(snapshot.error.toString()),
+              loc.returnHomeAndAddRecord,
             );
           } else if (snapshot.hasData) {
             final UserDayData userData = snapshot.data!;
@@ -351,7 +362,8 @@ class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
               return Center(
                 child: _buildEmptySection(
                   Icons.sentiment_dissatisfied,
-                  "該日無任何輸入記錄。",
+                  loc.noUserInputOnThisDay,
+                  loc.returnHomeAndAddRecord,
                 ),
               );
             }
@@ -359,21 +371,21 @@ class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
             return ListView(
               padding: const EdgeInsets.all(20.0),
               children: [
-                _buildSectionTitle(Icons.person_pin_outlined, "您的輸入歷史"),
+                _buildSectionTitle(
+                  Icons.person_pin_outlined,
+                  loc.yourInputHistory,
+                ),
 
-                // 1. 實際睡眠週期
                 _buildInputCard(
-                  title: "實際睡眠週期",
+                  title: loc.actualSleepCycle,
                   icon: Icons.bedtime_outlined,
                   dataList: userData.sleepCycles,
-                  isEmptyMessage: "無實際睡眠記錄",
+                  isEmptyMessage: loc.noActualSleepRecord,
                   buildItem: (item) {
-                    final start = _parseAndLocalize(
-                      item['sleep_start_time'] as String?,
-                    );
-                    final end = _parseAndLocalize(
-                      item['sleep_end_time'] as String?,
-                    );
+                    final start =
+                        _parseAndLocalize(item['sleep_start_time'] as String?);
+                    final end =
+                        _parseAndLocalize(item['sleep_end_time'] as String?);
 
                     if (start == null || end == null) return const SizedBox();
 
@@ -386,20 +398,20 @@ class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
                       children: [
                         _buildDataRow(
                           icon: Icons.arrow_right_alt,
-                          title: "開始時間",
+                          title: loc.startTime,
                           content: DateFormat('MM/dd HH:mm').format(start),
                           iconColor: _accentColor,
                         ),
                         _buildDataRow(
                           icon: Icons.arrow_right_alt,
-                          title: "結束時間",
+                          title: loc.endTime,
                           content: DateFormat('MM/dd HH:mm').format(end),
                           iconColor: _accentColor,
                         ),
                         _buildDataRow(
                           icon: Icons.timer,
-                          title: "總時長",
-                          content: "${hours}小時 ${minutes}分鐘",
+                          title: loc.totalDuration,
+                          content: loc.durationHoursMinutes(hours, minutes),
                           iconColor: _accentColor,
                         ),
                         const SizedBox(height: 8),
@@ -408,12 +420,11 @@ class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
                   },
                 ),
 
-                // 2. 目標清醒時段
                 _buildInputCard(
-                  title: "目標清醒時段",
+                  title: loc.targetWakePeriod,
                   icon: Icons.access_time_filled,
                   dataList: userData.wakePeriods,
-                  isEmptyMessage: "無目標清醒時段記錄",
+                  isEmptyMessage: loc.noTargetWakePeriodRecord,
                   buildItem: (item) {
                     final start = _parseAndLocalize(
                       item['target_start_time'] as String?,
@@ -429,13 +440,13 @@ class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
                       children: [
                         _buildDataRow(
                           icon: Icons.wb_sunny_outlined,
-                          title: "開始時間",
+                          title: loc.startTime,
                           content: DateFormat('MM/dd HH:mm').format(start),
                           iconColor: _accentColor,
                         ),
                         _buildDataRow(
                           icon: Icons.wb_sunny_outlined,
-                          title: "結束時間",
+                          title: loc.endTime,
                           content: DateFormat('MM/dd HH:mm').format(end),
                           iconColor: _accentColor,
                         ),
@@ -445,18 +456,18 @@ class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
                   },
                 ),
 
-                // 3. 咖啡因攝取
                 _buildInputCard(
-                  title: "咖啡因攝取",
+                  title: loc.caffeineIntake,
                   icon: Icons.local_cafe_outlined,
                   dataList: userData.caffeineIntakes,
-                  isEmptyMessage: "無咖啡因攝取記錄",
+                  isEmptyMessage: loc.noCaffeineIntakeRecord,
                   buildItem: (item) {
-                    final time = _parseAndLocalize(
-                      item['taking_timestamp'] as String?,
-                    );
-                    final amount = item['caffeine_amount'] ?? 'N/A';
-                    final name = item['drink_name'] ?? '未知飲料';
+                    final time =
+                        _parseAndLocalize(item['taking_timestamp'] as String?);
+                    final amount = item['caffeine_amount']?.toString() ??
+                        loc.notAvailable;
+                    final name =
+                        item['drink_name']?.toString() ?? loc.unknownDrink;
 
                     if (time == null) return const SizedBox();
 
@@ -465,14 +476,14 @@ class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
                       children: [
                         _buildDataRow(
                           icon: Icons.schedule,
-                          title: "飲用時間",
+                          title: loc.intakeTime,
                           content: DateFormat('MM/dd HH:mm').format(time),
                           iconColor: _accentColor,
                         ),
                         _buildDataRow(
                           icon: Icons.spa,
-                          title: "內容",
-                          content: "$name ($amount 毫克)",
+                          title: loc.contentLabel,
+                          content: loc.drinkWithAmount(name, amount),
                           iconColor: _accentColor,
                         ),
                         const SizedBox(height: 8),

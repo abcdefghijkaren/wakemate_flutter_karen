@@ -7,7 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:my_app/gen_l10n/app_localizations.dart';
 import 'CaffeineHistory.dart';
+
+import 'package:my_app/services/notification_service.dart';
 
 class CaffeineRecommendationPage extends StatefulWidget {
   final String userId;
@@ -44,10 +47,17 @@ class _CaffeineRecommendationPageState extends State<CaffeineRecommendationPage>
       duration: const Duration(milliseconds: 800),
     );
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
     );
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+
+    _scaleAnimation = Tween<double>(
+      begin: 0.8,
+      end: 1.0,
+    ).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.bounceOut),
     );
 
@@ -78,10 +88,87 @@ class _CaffeineRecommendationPageState extends State<CaffeineRecommendationPage>
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
+  DateTime? _parseAndLocalize(String? datetimeStr) {
+    if (datetimeStr == null || datetimeStr.isEmpty) return null;
+    try {
+      return DateTime.parse(datetimeStr).toLocal();
+    } catch (e) {
+      print('Time parsing failed for "$datetimeStr". Error: $e');
+      return null;
+    }
+  }
+
+  String _selectedDisplayDate() {
+    return DateFormat('yyyy-MM-dd').format(widget.selectedDate);
+  }
+
+  bool _isSameSelectedDate(DateTime dateTime) {
+    final selectedDateStr = _selectedDisplayDate();
+    final itemDateStr = DateFormat('yyyy-MM-dd').format(dateTime);
+    return selectedDateStr == itemDateStr;
+  }
+
+  String _getDisplayStatus(dynamic item) {
+    final bool isActive = item['is_active'] ?? true;
+    final String? timingStr = item['recommended_caffeine_intake_timing'];
+
+    final localTime = _parseAndLocalize(timingStr);
+    if (localTime == null) return 'unknown';
+
+    if (!isActive) return 'expired';
+    if (localTime.isBefore(DateTime.now())) return 'expired';
+
+    return 'active';
+  }
+
+  bool _shouldStoreRecommendation(dynamic item) {
+    final String timingStr = item['recommended_caffeine_intake_timing'] ?? '';
+    if (timingStr.isEmpty) return false;
+
+    final DateTime? localDateTime = _parseAndLocalize(timingStr);
+    if (localDateTime == null) return false;
+
+    // ⭐ 保留邏輯放寬：
+    // 只要是本次 API 回傳的資料都可以存，但真正顯示歸屬由 display_date 決定。
+    // 為避免把非常舊的歷史推薦整批塞進來，仍限制只保留與 selectedDate 接近的資料：
+    // 這裡接受 selectedDate 當天，或 selectedDate 隔天凌晨跨日的推薦。
+    final selectedDateStart = DateTime(
+      widget.selectedDate.year,
+      widget.selectedDate.month,
+      widget.selectedDate.day,
+    );
+    final nextDayEnd = selectedDateStart.add(const Duration(days: 2));
+
+    return !localDateTime.isBefore(selectedDateStart) &&
+        localDateTime.isBefore(nextDayEnd);
+  }
+
+  bool _shouldNotifyRecommendation(dynamic item) {
+    final String status = _getDisplayStatus(item);
+    if (status != 'active') return false;
+
+    final String timingStr = item['recommended_caffeine_intake_timing'] ?? '';
+    final DateTime? localDateTime = _parseAndLocalize(timingStr);
+    if (localDateTime == null) return false;
+
+    // 通知仍依實際推薦時間是否屬於這次 selectedDate 的需求範圍來發送。
+    // 這裡同樣放寬到 selectedDate 起算 48 小時內，避免跨午夜推薦不通知。
+    final selectedDateStart = DateTime(
+      widget.selectedDate.year,
+      widget.selectedDate.month,
+      widget.selectedDate.day,
+    );
+    final nextDayEnd = selectedDateStart.add(const Duration(days: 2));
+
+    return !localDateTime.isBefore(selectedDateStart) &&
+        localDateTime.isBefore(nextDayEnd);
+  }
+
   Future<void> _saveRecommendationData(dynamic newData) async {
     final prefs = await SharedPreferences.getInstance();
     final dataStr = prefs.getString('caffeine_recommendations') ?? '[]';
     List<dynamic> currentHistory;
+
     try {
       currentHistory = json.decode(dataStr);
     } catch (e) {
@@ -90,23 +177,38 @@ class _CaffeineRecommendationPageState extends State<CaffeineRecommendationPage>
     }
 
     final List<dynamic> newEntries = newData is List ? newData : [newData];
+    final String displayDate = _selectedDisplayDate();
+    final nowIso = DateTime.now().toIso8601String();
 
-    final String targetDateStr = DateFormat(
-      'yyyy-MM-dd',
-    ).format(widget.selectedDate);
+    // ⭐ 清除同一 display_date 的舊資料，而不是用推薦時間日期清除
+    currentHistory = currentHistory.where((item) {
+      final String? itemDisplayDate = item['display_date']?.toString();
+      if (itemDisplayDate != null && itemDisplayDate.isNotEmpty) {
+        return itemDisplayDate != displayDate;
+      }
 
-    currentHistory =
-        currentHistory.where((item) {
-          final String timingStr =
-              item['recommended_caffeine_intake_timing'] ?? '';
-          if (timingStr.isEmpty) return true;
-          final DateTime? parsed = DateTime.tryParse(timingStr)?.toLocal();
-          if (parsed == null) return true;
-          final String itemDateStr = DateFormat('yyyy-MM-dd').format(parsed);
-          return itemDateStr != targetDateStr;
-        }).toList();
+      // 舊版資料沒有 display_date 時，退回舊判斷
+      final String timingStr = item['recommended_caffeine_intake_timing'] ?? '';
+      if (timingStr.isEmpty) return true;
 
-    currentHistory.addAll(newEntries);
+      final DateTime? localDateTime = _parseAndLocalize(timingStr);
+      if (localDateTime == null) return true;
+
+      return !_isSameSelectedDate(localDateTime);
+    }).toList();
+
+    final normalizedEntries = newEntries
+        .where((item) => _shouldStoreRecommendation(item))
+        .map((item) {
+          final map = Map<String, dynamic>.from(item);
+          map['display_status'] = _getDisplayStatus(item);
+          map['fetched_at'] = nowIso;
+          map['display_date'] = displayDate; // ⭐ 新增：顯示歸屬日
+          return map;
+        })
+        .toList();
+
+    currentHistory.addAll(normalizedEntries);
 
     await prefs.setString(
       'caffeine_recommendations',
@@ -117,75 +219,117 @@ class _CaffeineRecommendationPageState extends State<CaffeineRecommendationPage>
   }
 
   Future<void> sendAllDataAndFetchRecommendation() async {
+    final loc = AppLocalizations.of(context)!;
     final userId = widget.userId;
 
     try {
       const timeout = Duration(seconds: 15);
 
-      // ✅ 只保留「取得推薦」的部分
       final recommendationUrl =
           "https://wakemate-api-4-0.onrender.com/recommendations/?user_id=$userId";
+
       final recommendationResponse = await http
           .get(Uri.parse(recommendationUrl))
           .timeout(timeout);
 
-      if (recommendationResponse.statusCode == 200) {
-        final data = json.decode(recommendationResponse.body);
-        _showSnackBar("計算成功！", color: Colors.green);
-        await _saveRecommendationData(data);
+      final status = recommendationResponse.statusCode;
+      final rawBody = recommendationResponse.body;
+
+      print('📡 recommendation status = $status');
+      print('📡 recommendation body = $rawBody');
+
+      if (status == 200) {
+        dynamic data;
+
+        try {
+          data = rawBody.trim().isEmpty ? [] : json.decode(rawBody);
+        } catch (e) {
+          _showSnackBar(loc.recommendationDataFormatError, color: Colors.red);
+          if (mounted) {
+            setState(() {
+              _errorMessage =
+                  loc.recommendationParseFailed(e.toString(), rawBody);
+              _isLoading = false;
+            });
+            _animationController.reverse();
+          }
+          return;
+        }
+
+        final List<dynamic> items = data is List ? data : [data];
+
+        await _saveRecommendationData(items);
+
+        try {
+          await _scheduleNotificationsFromRecommendation(items);
+        } catch (e) {
+          print('⚠️ 通知排程失敗，但推薦計算成功：$e');
+          _showSnackBar(
+            loc.recommendationUpdatedButNotificationFailed,
+            color: Colors.orange,
+          );
+        }
 
         if (!mounted) return;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder:
-                (context) => CaffeineHistoryPage(
-                  userId: widget.userId,
-                  selectedDate: widget.selectedDate,
-                ),
+            builder: (context) => CaffeineHistoryPage(
+              userId: widget.userId,
+              selectedDate: widget.selectedDate,
+            ),
           ),
         );
-      } else {
-        String bodyPreview =
-            recommendationResponse.body.length > 50
-                ? recommendationResponse.body.substring(0, 50) + '...'
-                : recommendationResponse.body;
-        _showSnackBar(
-          "計算失敗: ${recommendationResponse.statusCode}",
-          color: Colors.red,
-        );
+        return;
+      }
+
+      if (status == 204 || status == 404) {
+        _showSnackBar(loc.noNewRecommendationData, color: Colors.orange);
+
         if (mounted) {
           setState(() {
-            _errorMessage =
-                "伺服器錯誤 (Status: ${recommendationResponse.statusCode})。\n回應內容預覽: $bodyPreview";
+            _errorMessage = loc.noNewRecommendationDataMessage;
             _isLoading = false;
           });
           _animationController.reverse();
         }
+        return;
       }
-    } on TimeoutException {
-      _showSnackBar("錯誤：請求逾時，請檢查您的網路連線。", color: Colors.red);
+
+      String bodyPreview =
+          rawBody.length > 100 ? '${rawBody.substring(0, 100)}...' : rawBody;
+
+      _showSnackBar(loc.calculationFailedWithStatus(status), color: Colors.red);
       if (mounted) {
         setState(() {
-          _errorMessage = "連線逾時。請檢查網路後重試。";
+          _errorMessage = loc.serverErrorWithPreview(status, bodyPreview);
+          _isLoading = false;
+        });
+        _animationController.reverse();
+      }
+    } on TimeoutException {
+      _showSnackBar(loc.timeoutCheckNetwork, color: Colors.red);
+      if (mounted) {
+        setState(() {
+          _errorMessage = loc.connectionTimedOut;
           _isLoading = false;
         });
         _animationController.reverse();
       }
     } on SocketException {
-      _showSnackBar("網路連線錯誤，請檢查您的網路。", color: Colors.red);
+      _showSnackBar(loc.networkConnectionError, color: Colors.red);
       if (mounted) {
         setState(() {
-          _errorMessage = "無法連線到伺服器。請檢查網路。";
+          _errorMessage = loc.cannotConnectToServer;
           _isLoading = false;
         });
         _animationController.reverse();
       }
     } catch (e) {
-      _showSnackBar("發生未知錯誤: $e", color: Colors.red);
+      _showSnackBar(loc.unknownError(e.toString()), color: Colors.red);
       if (mounted) {
         setState(() {
-          _errorMessage = "發生未知錯誤: $e";
+          _errorMessage = loc.unknownError(e.toString());
           _isLoading = false;
         });
         _animationController.reverse();
@@ -193,15 +337,79 @@ class _CaffeineRecommendationPageState extends State<CaffeineRecommendationPage>
     }
   }
 
+  Future<void> _scheduleNotificationsFromRecommendation(dynamic data) async {
+    final loc = AppLocalizations.of(context)!;
+
+    await NotificationService.instance.cancelRecommendationNotifications();
+
+    final List<dynamic> items = data is List ? data : [data];
+    int validIndex = 0;
+
+    for (final item in items) {
+      if (!_shouldNotifyRecommendation(item)) {
+        continue;
+      }
+
+      final String timingStr = item['recommended_caffeine_intake_timing'];
+      final dynamic amount = item['recommended_caffeine_amount'];
+
+      final num caffeineAmount =
+          amount is num ? amount : num.tryParse(amount.toString()) ?? 0;
+
+      if (caffeineAmount <= 0) continue;
+
+      final DateTime? scheduledLocal = _parseAndLocalize(timingStr);
+      if (scheduledLocal == null) continue;
+
+      final String formattedTime =
+          '${scheduledLocal.hour.toString().padLeft(2, '0')}:'
+          '${scheduledLocal.minute.toString().padLeft(2, '0')}';
+
+      final String formattedAmount =
+          caffeineAmount.toStringAsFixed(caffeineAmount % 1 == 0 ? 0 : 1);
+
+      // 第一次：計算完成當下立即通知
+      await NotificationService.instance.showRecommendationReadyNotification(
+        id: 100000 + validIndex,
+        title: loc.wakemateRecommendationGenerated,
+        body: loc.recommendationGeneratedBody(formattedTime, formattedAmount),
+      );
+
+      // 第二次：在「推薦時間」發送通知
+      if (scheduledLocal.isAfter(DateTime.now())) {
+        await NotificationService.instance.scheduleCaffeineReminder(
+          id: 200000 + validIndex,
+          scheduledTime: scheduledLocal,
+          title: loc.wakemateCaffeineReminder,
+          body: loc.caffeineReminderBody(formattedTime, formattedAmount),
+          payload: 'caffeine_reminder_at_time',
+        );
+      } else {
+        print(
+          '⚠️ 已略過定時通知：推薦時間已過 scheduledLocal=$scheduledLocal, now=${DateTime.now()}',
+        );
+      }
+
+      validIndex++;
+    }
+
+    await NotificationService.instance.debugPendingNotifications();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text(
-          "咖啡因建議",
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+        title: Text(
+          loc.caffeineRecommendationPageTitle,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
         ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
@@ -230,10 +438,9 @@ class _CaffeineRecommendationPageState extends State<CaffeineRecommendationPage>
                         child: Center(
                           child: Padding(
                             padding: const EdgeInsets.all(30.0),
-                            child:
-                                _isLoading
-                                    ? _buildLoadingWidget()
-                                    : _buildErrorWidget(),
+                            child: _isLoading
+                                ? _buildLoadingWidget()
+                                : _buildErrorWidget(),
                           ),
                         ),
                       ),
@@ -249,13 +456,15 @@ class _CaffeineRecommendationPageState extends State<CaffeineRecommendationPage>
   }
 
   Widget _buildLoadingWidget() {
+    final loc = AppLocalizations.of(context)!;
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         CircularProgressIndicator(color: _primaryColor, strokeWidth: 5),
         const SizedBox(height: 24),
         Text(
-          "正在為您分析咖啡因數據...",
+          loc.analyzingCaffeineData,
           textAlign: TextAlign.center,
           style: TextStyle(
             color: _primaryColor,
@@ -265,7 +474,7 @@ class _CaffeineRecommendationPageState extends State<CaffeineRecommendationPage>
         ),
         const SizedBox(height: 8),
         Text(
-          "這可能需要一點時間，請耐心等候",
+          loc.thisMayTakeSomeTimePleaseWait,
           textAlign: TextAlign.center,
           style: TextStyle(color: Colors.grey[600], fontSize: 14),
         ),
@@ -274,14 +483,16 @@ class _CaffeineRecommendationPageState extends State<CaffeineRecommendationPage>
   }
 
   Widget _buildErrorWidget() {
+    final loc = AppLocalizations.of(context)!;
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(Icons.sentiment_dissatisfied, color: Colors.redAccent, size: 70),
         const SizedBox(height: 20),
         Text(
-          "哎呀！計算失敗了...",
-          style: TextStyle(
+          loc.oopsCalculationFailed,
+          style: const TextStyle(
             color: Colors.redAccent,
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -307,7 +518,7 @@ class _CaffeineRecommendationPageState extends State<CaffeineRecommendationPage>
             }
           },
           icon: const Icon(Icons.refresh, size: 20),
-          label: const Text("重新嘗試", style: TextStyle(fontSize: 18)),
+          label: Text(loc.retry, style: const TextStyle(fontSize: 18)),
           style: ElevatedButton.styleFrom(
             backgroundColor: _primaryColor,
             foregroundColor: Colors.white,
@@ -322,7 +533,7 @@ class _CaffeineRecommendationPageState extends State<CaffeineRecommendationPage>
         TextButton(
           onPressed: () => Navigator.pop(context),
           child: Text(
-            "返回主頁",
+            loc.backToHomePage,
             style: TextStyle(color: _accentColor, fontSize: 16),
           ),
         ),

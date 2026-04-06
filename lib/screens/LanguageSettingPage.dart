@@ -6,27 +6,28 @@ import 'package:my_app/gen_l10n/app_localizations.dart';
 class LanguageSettingPage extends StatelessWidget {
   const LanguageSettingPage({super.key});
 
-  final Color _primaryColor = const Color(0xFF1F3D5B);
-  final Color _accentColor = const Color(0xFF4DB6AC);
-  final Color _lightColor = const Color(0xFFF7F9FC);
+  static const Color _primaryColor = Color(0xFF1F3D5B);
+  static const Color _accentColor = Color(0xFF4DB6AC);
+  static const Color _lightColor = Color(0xFFF7F9FC);
 
   @override
   Widget build(BuildContext context) {
     final localeProvider = context.watch<LocaleProvider>();
     final l10n = AppLocalizations.of(context)!;
-
-    // 從 Provider 取得目前語言代碼（確保 groupValue 能更新）
     final String selectedLanguage = localeProvider.localeCode;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
           l10n.languageSettingsTitle,
-          style: TextStyle(color: _primaryColor, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            color: _primaryColor,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: IconThemeData(color: _primaryColor),
+        iconTheme: const IconThemeData(color: _primaryColor),
       ),
       backgroundColor: _lightColor,
       body: ListView(
@@ -49,28 +50,11 @@ class LanguageSettingPage extends StatelessWidget {
             ),
             child: Column(
               children: [
-                _buildLanguageTile(
-                  context,
-                  'English (US)',
-                  'en_US',
-                  selectedLanguage,
-                ),
+                _buildLanguageTile(context, 'English', 'en', selectedLanguage),
                 const Divider(height: 1, indent: 20, endIndent: 20),
-                _buildLanguageTile(
-                  context,
-                  '繁體中文 (台灣)',
-                  'zh_TW',
-                  selectedLanguage,
-                ),
+                _buildLanguageTile(context, '繁體中文', 'zh_TW', selectedLanguage),
                 const Divider(height: 1, indent: 20, endIndent: 20),
-                _buildLanguageTile(
-                  context,
-                  'Bahasa Indonesia',
-                  'id_ID',
-                  selectedLanguage,
-                ),
-                const Divider(height: 1, indent: 20, endIndent: 20),
-                _buildLanguageTile(context, '中文', 'zh', selectedLanguage),
+                _buildLanguageTile(context, 'Bahasa Indonesia', 'id', selectedLanguage),
               ],
             ),
           ),
@@ -88,7 +72,10 @@ class LanguageSettingPage extends StatelessWidget {
     return RadioListTile<String>(
       title: Text(
         title,
-        style: TextStyle(color: _primaryColor, fontWeight: FontWeight.w600),
+        style: const TextStyle(
+          color: _primaryColor,
+          fontWeight: FontWeight.w600,
+        ),
       ),
       value: languageCode,
       groupValue: selectedLanguage,

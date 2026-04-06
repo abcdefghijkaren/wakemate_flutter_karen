@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:my_app/gen_l10n/app_localizations.dart';
 
 class SettingsPage extends StatefulWidget {
   final String userId;
@@ -22,12 +23,11 @@ class _SettingsPageState extends State<SettingsPage> {
   final String baseUrl = 'https://wakemate-api-4-0.onrender.com';
   String? _existingRecordId;
 
-  // 定義顏色和樣式
-  final Color _primaryColor = const Color(0xFF1F3D5B); // 深藍色
-  final Color _accentColor = const Color(0xFF5E91B3); // 淺藍色
-  final Color _backgroundColor = const Color(0xFFF0F2F5); // 淺灰色背景
-  final Color _cardColor = Colors.white; // 卡片白色背景
-  final Color _textColor = const Color(0xFF424242); // 深灰色文字
+  final Color _primaryColor = const Color(0xFF1F3D5B);
+  final Color _accentColor = const Color(0xFF5E91B3);
+  final Color _backgroundColor = const Color(0xFFF0F2F5);
+  final Color _cardColor = Colors.white;
+  final Color _textColor = const Color(0xFF424242);
 
   @override
   void initState() {
@@ -50,6 +50,8 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _loadUserSettings() async {
+    final l10n = AppLocalizations.of(context)!;
+
     setState(() => _isLoading = true);
     try {
       final res = await http.get(
@@ -70,22 +72,26 @@ class _SettingsPageState extends State<SettingsPage> {
             _bmiController.text = userData['bmi']?.toString() ?? '';
           });
         } else {
-          print("尚未有資料，第一次使用");
+          print("No existing body data. First-time user.");
         }
       } else {
-        print("讀取資料失敗：${res.body}");
+        print("Failed to load data: ${res.body}");
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text("讀取資料失敗: ${res.statusCode}")));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${l10n.loadFailed}: ${res.statusCode}'),
+            ),
+          );
         }
       }
     } catch (e) {
-      print("讀取資料錯誤：$e");
+      print("Load data error: $e");
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("讀取資料錯誤：$e")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${l10n.loadFailed}: $e'),
+          ),
+        );
       }
     } finally {
       setState(() => _isLoading = false);
@@ -93,10 +99,12 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _saveSettings() async {
+    final l10n = AppLocalizations.of(context)!;
+
     if (!_formKey.currentState!.validate() || _gender == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("請完整填寫所有必填資料並選擇性別")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.completeRequiredFieldsAndGender)),
+      );
       return;
     }
 
@@ -135,22 +143,22 @@ class _SettingsPageState extends State<SettingsPage> {
 
       if (res.statusCode == 200 || res.statusCode == 201) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text("設定已保存成功！")));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.saveSuccess)),
+          );
         }
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text("保存失敗：${res.body}")));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${l10n.saveFailed}: ${res.body}')),
+          );
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("錯誤：$e")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${l10n.errorPrefix}: $e')),
+        );
       }
     } finally {
       setState(() => _isLoading = false);
@@ -168,11 +176,13 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: _backgroundColor,
       appBar: AppBar(
         title: Text(
-          "個人身體數據",
+          l10n.personalBodyData,
           style: TextStyle(fontWeight: FontWeight.bold, color: _primaryColor),
         ),
         centerTitle: true,
@@ -180,180 +190,177 @@ class _SettingsPageState extends State<SettingsPage> {
         elevation: 0,
         iconTheme: IconThemeData(color: _primaryColor),
       ),
-      body:
-          _isLoading && _existingRecordId == null
-              ? Center(child: CircularProgressIndicator(color: _accentColor))
-              : SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 10),
-                      Text(
-                        "性別",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: _textColor,
-                        ),
+      body: _isLoading && _existingRecordId == null
+          ? Center(child: CircularProgressIndicator(color: _accentColor))
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 10),
+                    Text(
+                      l10n.gender,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: _textColor,
                       ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        decoration: BoxDecoration(
-                          color: _cardColor,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.2),
-                              spreadRadius: 1,
-                              blurRadius: 5,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: RadioListTile<String>(
-                                title: Text(
-                                  "男",
-                                  style: TextStyle(color: _textColor),
-                                ),
-                                value: "M",
-                                groupValue: _gender,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _gender = value;
-                                  });
-                                },
-                                activeColor: _accentColor,
-                              ),
-                            ),
-                            Expanded(
-                              child: RadioListTile<String>(
-                                title: Text(
-                                  "女",
-                                  style: TextStyle(color: _textColor),
-                                ),
-                                value: "F",
-                                groupValue: _gender,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _gender = value;
-                                  });
-                                },
-                                activeColor: _accentColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      _buildTextFormField(
-                        controller: _ageController,
-                        labelText: "年齡",
-                        hintText: "請輸入您的年齡",
-                        keyboardType: TextInputType.number,
-                        prefixIcon: Icons.cake_outlined,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "年齡為必填項";
-                          }
-                          if (int.tryParse(value) == null ||
-                              int.parse(value) <= 0) {
-                            return "請輸入有效的年齡";
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTextFormField(
-                        controller: _heightController,
-                        labelText: "身高 (cm)",
-                        hintText: "請輸入您的身高",
-                        keyboardType: TextInputType.number,
-                        prefixIcon: Icons.height,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "身高為必填項";
-                          }
-                          if (double.tryParse(value) == null ||
-                              double.parse(value) <= 0) {
-                            return "請輸入有效身高";
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTextFormField(
-                        controller: _weightController,
-                        labelText: "體重 (kg)",
-                        hintText: "請輸入您的體重",
-                        keyboardType: TextInputType.number,
-                        prefixIcon: Icons.scale,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "體重為必填項";
-                          }
-                          if (double.tryParse(value) == null ||
-                              double.parse(value) <= 0) {
-                            return "請輸入有效體重";
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTextFormField(
-                        controller: _bmiController,
-                        labelText: "BMI",
-                        hintText: "將自動計算您的 BMI",
-                        keyboardType: TextInputType.number,
-                        prefixIcon: Icons.calculate,
-                        readOnly: true,
-                        fillColor: Colors.grey[200],
-                      ),
-                      const SizedBox(height: 32),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 55,
-                        child: ElevatedButton.icon(
-                          onPressed: _isLoading ? null : _saveSettings,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _primaryColor,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 5,
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                        color: _cardColor,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.2),
+                            spreadRadius: 1,
+                            blurRadius: 5,
+                            offset: const Offset(0, 3),
                           ),
-                          icon:
-                              _isLoading
-                                  ? const SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                  : const Icon(Icons.save),
-                          label: Text(
-                            _isLoading ? "保存中..." : "保存設定",
-                            style: const TextStyle(fontSize: 18),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: RadioListTile<String>(
+                              title: Text(
+                                l10n.male,
+                                style: TextStyle(color: _textColor),
+                              ),
+                              value: "M",
+                              groupValue: _gender,
+                              onChanged: (value) {
+                                setState(() {
+                                  _gender = value;
+                                });
+                              },
+                              activeColor: _accentColor,
+                            ),
                           ),
+                          Expanded(
+                            child: RadioListTile<String>(
+                              title: Text(
+                                l10n.female,
+                                style: TextStyle(color: _textColor),
+                              ),
+                              value: "F",
+                              groupValue: _gender,
+                              onChanged: (value) {
+                                setState(() {
+                                  _gender = value;
+                                });
+                              },
+                              activeColor: _accentColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    _buildTextFormField(
+                      controller: _ageController,
+                      labelText: l10n.age,
+                      hintText: l10n.enterAge,
+                      keyboardType: TextInputType.number,
+                      prefixIcon: Icons.cake_outlined,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return l10n.ageRequired;
+                        }
+                        if (int.tryParse(value) == null ||
+                            int.parse(value) <= 0) {
+                          return l10n.invalidAge;
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextFormField(
+                      controller: _heightController,
+                      labelText: l10n.heightCm,
+                      hintText: l10n.enterHeight,
+                      keyboardType: TextInputType.number,
+                      prefixIcon: Icons.height,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return l10n.heightRequired;
+                        }
+                        if (double.tryParse(value) == null ||
+                            double.parse(value) <= 0) {
+                          return l10n.invalidHeight;
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextFormField(
+                      controller: _weightController,
+                      labelText: l10n.weightKg,
+                      hintText: l10n.enterWeight,
+                      keyboardType: TextInputType.number,
+                      prefixIcon: Icons.scale,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return l10n.weightRequired;
+                        }
+                        if (double.tryParse(value) == null ||
+                            double.parse(value) <= 0) {
+                          return l10n.invalidWeight;
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextFormField(
+                      controller: _bmiController,
+                      labelText: l10n.bmi,
+                      hintText: l10n.autoCalculateBMI,
+                      keyboardType: TextInputType.number,
+                      prefixIcon: Icons.calculate,
+                      readOnly: true,
+                      fillColor: Colors.grey[200],
+                    ),
+                    const SizedBox(height: 32),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 55,
+                      child: ElevatedButton.icon(
+                        onPressed: _isLoading ? null : _saveSettings,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _primaryColor,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 5,
+                        ),
+                        icon: _isLoading
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.save),
+                        label: Text(
+                          _isLoading ? l10n.saving : l10n.saveSettings,
+                          style: const TextStyle(fontSize: 18),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
+            ),
     );
   }
 
-  // 輔助函式，用於建立統一風格的 TextFormField
   Widget _buildTextFormField({
     required TextEditingController controller,
     required String labelText,

@@ -11,8 +11,14 @@ import 'package:my_app/gen_l10n/app_localizations.dart';
 import '/screens/LoginPage.dart';
 import '/screens/home_page.dart';
 
+import 'package:my_app/services/notification_service.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await NotificationService.instance.initialize();
+  await NotificationService.instance.requestPermission();
+  await NotificationService.instance.debugNotificationStatus();
 
   //執行 runApp，並在最頂層提供LocaleProvider
   runApp(
