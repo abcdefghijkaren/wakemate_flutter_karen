@@ -30,6 +30,42 @@ class _CaffeineLogPageState extends State<CaffeineLogPage> {
   final Color _accentColor = const Color(0xFF8BB9A1);
   final Color _bgLight = const Color(0xFFF9F9F7);
 
+  Widget buildSleepProtectionWarning(BuildContext context) {
+      final loc = AppLocalizations.of(context)!;
+
+      return Container(
+        width: double.infinity,
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.orange.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.orange.shade200),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(
+              Icons.warning_amber_rounded,
+              color: Colors.orange,
+              size: 22,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                loc.avoidCaffeineBeforeSleepWarning,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black87,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
   @override
   void initState() {
     super.initState();
@@ -205,6 +241,7 @@ class _CaffeineLogPageState extends State<CaffeineLogPage> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
+            buildSleepProtectionWarning(context),
             Text(
               loc.caffeineDescription,
               style: const TextStyle(fontSize: 16, color: Colors.grey),
@@ -220,6 +257,7 @@ class _CaffeineLogPageState extends State<CaffeineLogPage> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 hintText: loc.caffeineExample,
+                hintStyle: TextStyle(color: Colors.grey),
                 prefixIcon: Icon(
                   Icons.local_cafe_outlined,
                   color: _primaryColor,
@@ -235,6 +273,7 @@ class _CaffeineLogPageState extends State<CaffeineLogPage> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 hintText: loc.drinkExample,
+                hintStyle: TextStyle(color: Colors.grey),
                 prefixIcon: Icon(
                   Icons.local_drink_outlined,
                   color: _primaryColor,

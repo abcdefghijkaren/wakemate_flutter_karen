@@ -182,13 +182,13 @@ abstract class AppLocalizations {
   /// No description provided for @wakeTime.
   ///
   /// In en, this message translates to:
-  /// **'Wake Time'**
+  /// **'Target Alertness Period'**
   String get wakeTime;
 
   /// No description provided for @sleepTime.
   ///
   /// In en, this message translates to:
-  /// **'Sleep Time'**
+  /// **'Actual Sleep Period'**
   String get sleepTime;
 
   /// No description provided for @caffeineLog.
@@ -224,7 +224,7 @@ abstract class AppLocalizations {
   /// No description provided for @tapToStart.
   ///
   /// In en, this message translates to:
-  /// **'Tap to Start'**
+  /// **'When the color changes, tap immediately.'**
   String get tapToStart;
 
   /// No description provided for @pleaseWait.
@@ -272,13 +272,13 @@ abstract class AppLocalizations {
   /// No description provided for @selectKssLevel.
   ///
   /// In en, this message translates to:
-  /// **'Select your alertness level (KSS):'**
+  /// **'Select your alertness level:'**
   String get selectKssLevel;
 
   /// No description provided for @chooseKssScore.
   ///
   /// In en, this message translates to:
-  /// **'Select KSS score'**
+  /// **'Select alertness level'**
   String get chooseKssScore;
 
   /// No description provided for @testAgain.
@@ -310,12 +310,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Network error. Unable to submit data'**
   String get networkErrorCannotSubmit;
-
-  /// No description provided for @tapHere.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap Here'**
-  String get tapHere;
 
   /// No description provided for @startTest.
   ///
@@ -848,7 +842,7 @@ abstract class AppLocalizations {
   /// No description provided for @wakePageTitle.
   ///
   /// In en, this message translates to:
-  /// **'Set Target Wake Period'**
+  /// **'Set Target Alertness Period'**
   String get wakePageTitle;
 
   /// No description provided for @wakeDescription.
@@ -902,7 +896,7 @@ abstract class AppLocalizations {
   /// No description provided for @wakeSlotTitle.
   ///
   /// In en, this message translates to:
-  /// **'Wake Slot #{index}'**
+  /// **'Target Alertness Period #{index}'**
   String wakeSlotTitle(Object index);
 
   /// No description provided for @startTime.
@@ -926,7 +920,7 @@ abstract class AppLocalizations {
   /// No description provided for @saveWakeTime.
   ///
   /// In en, this message translates to:
-  /// **'Save Wake Period'**
+  /// **'Save Target Alertness Period'**
   String get saveWakeTime;
 
   /// No description provided for @timeExampleStart.
@@ -992,13 +986,13 @@ abstract class AppLocalizations {
   /// No description provided for @targetWakePeriod.
   ///
   /// In en, this message translates to:
-  /// **'Target Wake Period'**
+  /// **'Target Alertness Period'**
   String get targetWakePeriod;
 
   /// No description provided for @noTargetWakePeriodRecord.
   ///
   /// In en, this message translates to:
-  /// **'No target wake period record'**
+  /// **'No target alertness period recorded'**
   String get noTargetWakePeriodRecord;
 
   /// No description provided for @noCaffeineIntakeRecord.
@@ -1142,7 +1136,7 @@ abstract class AppLocalizations {
   /// No description provided for @recommendationUpdatedButNotificationFailed.
   ///
   /// In en, this message translates to:
-  /// **'Recommendation updated but notification scheduling failed'**
+  /// **'Some notifications were not scheduled because the recommended time has passed. Your recommendation is still valid—please follow the on-screen guidance.'**
   String get recommendationUpdatedButNotificationFailed;
 
   /// No description provided for @noNewRecommendationData.
@@ -1252,6 +1246,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back to Home'**
   String get backToHomePage;
+
+  /// No description provided for @edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get edit;
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @deleteRecordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete record'**
+  String get deleteRecordTitle;
+
+  /// No description provided for @deleteRecordMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This record will be deleted. Do you want to continue?'**
+  String get deleteRecordMessage;
+
+  /// No description provided for @editSleepRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit sleep record'**
+  String get editSleepRecord;
+
+  /// No description provided for @editWakePeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Target Alertness Period'**
+  String get editWakePeriod;
+
+  /// No description provided for @editCaffeineIntake.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit caffeine intake'**
+  String get editCaffeineIntake;
+
+  /// No description provided for @intakeTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Intake time'**
+  String get intakeTimeLabel;
+
+  /// No description provided for @drinkNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Drink name'**
+  String get drinkNameLabel;
+
+  /// No description provided for @caffeineAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Caffeine amount (mg)'**
+  String get caffeineAmountLabel;
+
+  /// No description provided for @dateTimeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'yyyy-MM-dd HH:mm'**
+  String get dateTimeHint;
+
+  /// No description provided for @deletedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted successfully'**
+  String get deletedSuccessfully;
+
+  /// No description provided for @updatedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated successfully'**
+  String get updatedSuccessfully;
+
+  /// No description provided for @deleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete failed'**
+  String get deleteFailed;
+
+  /// No description provided for @updateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Update failed'**
+  String get updateFailed;
+
+  /// No description provided for @invalidDateTimeFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid datetime format. Use yyyy-MM-dd HH:mm'**
+  String get invalidDateTimeFormat;
+
+  /// No description provided for @invalidCaffeineAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid caffeine amount'**
+  String get invalidCaffeineAmount;
+
+  /// No description provided for @emptyDrinkName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a drink name'**
+  String get emptyDrinkName;
+
+  /// No description provided for @endTimeMustBeLater.
+  ///
+  /// In en, this message translates to:
+  /// **'End time must be later than start time'**
+  String get endTimeMustBeLater;
+
+  /// No description provided for @mergedFromRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Merged from {count} records'**
+  String mergedFromRecords(int count);
+
+  /// No description provided for @singleRecordCount.
+  ///
+  /// In en, this message translates to:
+  /// **'1 record'**
+  String get singleRecordCount;
+
+  /// No description provided for @originalRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Original record'**
+  String get originalRecord;
+
+  /// No description provided for @pvtKssBaselineTestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Please complete a baseline alertness test'**
+  String get pvtKssBaselineTestTitle;
+
+  /// No description provided for @pvtKssBaselineTestBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You are scheduled to take caffeine at {time}. Please complete one alertness test before intake.'**
+  String pvtKssBaselineTestBody(String time);
+
+  /// No description provided for @pvtKssEffectTestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Please complete the post-caffeine test'**
+  String get pvtKssEffectTestTitle;
+
+  /// No description provided for @pvtKssEffectTestBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You are now within the caffeine effect window. Please complete one alertness test to evaluate the effect.'**
+  String pvtKssEffectTestBody(String time);
+
+  /// No description provided for @avoidCaffeineBeforeSleepWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'To protect your sleep quality, please avoid caffeine within 6 hours before sleep.'**
+  String get avoidCaffeineBeforeSleepWarning;
 }
 
 class _AppLocalizationsDelegate

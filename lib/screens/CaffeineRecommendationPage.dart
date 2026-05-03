@@ -39,6 +39,42 @@ class _CaffeineRecommendationPageState extends State<CaffeineRecommendationPage>
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
 
+  Widget buildSleepProtectionWarning(BuildContext context) {
+      final loc = AppLocalizations.of(context)!;
+
+      return Container(
+        width: double.infinity,
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.orange.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.orange.shade200),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(
+              Icons.warning_amber_rounded,
+              color: Colors.orange,
+              size: 22,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                loc.avoidCaffeineBeforeSleepWarning,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black87,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
   @override
   void initState() {
     super.initState();
@@ -88,12 +124,25 @@ class _CaffeineRecommendationPageState extends State<CaffeineRecommendationPage>
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-  DateTime? _parseAndLocalize(String? datetimeStr) {
-    if (datetimeStr == null || datetimeStr.isEmpty) return null;
+  DateTime? _parseRecommendationTime(String? datetimeStr) {
+    if (datetimeStr == null || datetimeStr.trim().isEmpty) return null;
+
     try {
-      return DateTime.parse(datetimeStr).toLocal();
+      final parsed = DateTime.parse(datetimeStr.trim());
+
+      // ⭐ 不做任何時區轉換，只保留牆上時間
+      return DateTime(
+        parsed.year,
+        parsed.month,
+        parsed.day,
+        parsed.hour,
+        parsed.minute,
+        parsed.second,
+        parsed.millisecond,
+        parsed.microsecond,
+      );
     } catch (e) {
-      print('Time parsing failed for "$datetimeStr". Error: $e');
+      debugPrint('Parse error: $e');
       return null;
     }
   }
@@ -112,7 +161,7 @@ class _CaffeineRecommendationPageState extends State<CaffeineRecommendationPage>
     final bool isActive = item['is_active'] ?? true;
     final String? timingStr = item['recommended_caffeine_intake_timing'];
 
-    final localTime = _parseAndLocalize(timingStr);
+    final localTime = _parseRecommendationTime(timingStr);
     if (localTime == null) return 'unknown';
 
     if (!isActive) return 'expired';
@@ -125,7 +174,7 @@ class _CaffeineRecommendationPageState extends State<CaffeineRecommendationPage>
     final String timingStr = item['recommended_caffeine_intake_timing'] ?? '';
     if (timingStr.isEmpty) return false;
 
-    final DateTime? localDateTime = _parseAndLocalize(timingStr);
+    final DateTime? localDateTime = _parseRecommendationTime(timingStr);
     if (localDateTime == null) return false;
 
     // ⭐ 保留邏輯放寬：
@@ -148,7 +197,7 @@ class _CaffeineRecommendationPageState extends State<CaffeineRecommendationPage>
     if (status != 'active') return false;
 
     final String timingStr = item['recommended_caffeine_intake_timing'] ?? '';
-    final DateTime? localDateTime = _parseAndLocalize(timingStr);
+    final DateTime? localDateTime = _parseRecommendationTime(timingStr);
     if (localDateTime == null) return false;
 
     // 通知仍依實際推薦時間是否屬於這次 selectedDate 的需求範圍來發送。
@@ -191,7 +240,7 @@ class _CaffeineRecommendationPageState extends State<CaffeineRecommendationPage>
       final String timingStr = item['recommended_caffeine_intake_timing'] ?? '';
       if (timingStr.isEmpty) return true;
 
-      final DateTime? localDateTime = _parseAndLocalize(timingStr);
+      final DateTime? localDateTime = _parseRecommendationTime(timingStr);
       if (localDateTime == null) return true;
 
       return !_isSameSelectedDate(localDateTime);
@@ -341,6 +390,7 @@ class _CaffeineRecommendationPageState extends State<CaffeineRecommendationPage>
     final loc = AppLocalizations.of(context)!;
 
     await NotificationService.instance.cancelRecommendationNotifications();
+    await NotificationService.instance.cancelTestNotifications();
 
     final List<dynamic> items = data is List ? data : [data];
     int validIndex = 0;
@@ -358,8 +408,10 @@ class _CaffeineRecommendationPageState extends State<CaffeineRecommendationPage>
 
       if (caffeineAmount <= 0) continue;
 
-      final DateTime? scheduledLocal = _parseAndLocalize(timingStr);
+      final DateTime? scheduledLocal = _parseRecommendationTime(timingStr);
       if (scheduledLocal == null) continue;
+
+      final now = DateTime.now();
 
       final String formattedTime =
           '${scheduledLocal.hour.toString().padLeft(2, '0')}:'
@@ -368,6 +420,8 @@ class _CaffeineRecommendationPageState extends State<CaffeineRecommendationPage>
       final String formattedAmount =
           caffeineAmount.toStringAsFixed(caffeineAmount % 1 == 0 ? 0 : 1);
 
+      // ===== 原本的推薦通知 =====
+
       // 第一次：計算完成當下立即通知
       await NotificationService.instance.showRecommendationReadyNotification(
         id: 100000 + validIndex,
@@ -375,8 +429,8 @@ class _CaffeineRecommendationPageState extends State<CaffeineRecommendationPage>
         body: loc.recommendationGeneratedBody(formattedTime, formattedAmount),
       );
 
-      // 第二次：在「推薦時間」發送通知
-      if (scheduledLocal.isAfter(DateTime.now())) {
+      // 第二次：在推薦攝取時間發送通知
+      if (scheduledLocal.isAfter(now)) {
         await NotificationService.instance.scheduleCaffeineReminder(
           id: 200000 + validIndex,
           scheduledTime: scheduledLocal,
@@ -385,9 +439,64 @@ class _CaffeineRecommendationPageState extends State<CaffeineRecommendationPage>
           payload: 'caffeine_reminder_at_time',
         );
       } else {
-        print(
-          '⚠️ 已略過定時通知：推薦時間已過 scheduledLocal=$scheduledLocal, now=${DateTime.now()}',
+        debugPrint(
+          '⚠️ 已略過定時攝取通知：推薦時間已過 scheduledLocal=$scheduledLocal, now=$now',
         );
+      }
+
+      // ===== 新增：測驗通知 =====
+      // 前測：攝取前 15 分鐘
+      final DateTime baselineTestTime =
+          scheduledLocal.subtract(const Duration(minutes: 15));
+
+      // 後測：攝取後 60 分鐘
+      final DateTime effectTestTime =
+          scheduledLocal.add(const Duration(minutes: 60));
+
+      debugPrint('========== TEST REMINDER DEBUG ==========');
+      debugPrint('item timingStr = $timingStr');
+      debugPrint('scheduledLocal = $scheduledLocal');
+      debugPrint('now = $now');
+      debugPrint('baselineTestTime = $baselineTestTime');
+      debugPrint('effectTestTime = $effectTestTime');
+      debugPrint('baselineTestTime.isAfter(now) = ${baselineTestTime.isAfter(now)}');
+      debugPrint('scheduledLocal.isAfter(now) = ${scheduledLocal.isAfter(now)}');
+      debugPrint('effectTestTime.isAfter(now) = ${effectTestTime.isAfter(now)}');
+
+      // A. 攝取前基準測驗通知
+      if (baselineTestTime.isAfter(now)) {
+        await NotificationService.instance.scheduleTestReminder(
+          id: 300000 + validIndex,
+          scheduledTime: baselineTestTime,
+          title: loc.pvtKssBaselineTestTitle,
+          body: loc.pvtKssBaselineTestBody(formattedTime),
+          payload: 'baseline_test_before_caffeine',
+        );
+      } else if (scheduledLocal.isAfter(now)) {
+        debugPrint('B. baseline test immediate show');
+        // 如果現在已經進入「前 15 分鐘內」但還沒到攝取時間，就立即提醒
+        await NotificationService.instance.showImmediateTestReminder(
+          id: 400000 + validIndex,
+          title: loc.pvtKssBaselineTestTitle,
+          body: loc.pvtKssBaselineTestBody(formattedTime),
+        );
+      } else {
+        debugPrint('baseline test skipped completely');
+      }
+
+      // B. 攝取後效果測驗通知
+      if (effectTestTime.isAfter(now)) {
+        debugPrint('C. effect test scheduled');
+
+        await NotificationService.instance.scheduleTestReminder(
+          id: 500000 + validIndex,
+          scheduledTime: effectTestTime,
+          title: loc.pvtKssEffectTestTitle,
+          body: loc.pvtKssEffectTestBody(formattedTime),
+          payload: 'effect_test_after_caffeine',
+        );
+      } else {
+        debugPrint('effect test skipped completely');
       }
 
       validIndex++;
@@ -461,6 +570,7 @@ class _CaffeineRecommendationPageState extends State<CaffeineRecommendationPage>
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        buildSleepProtectionWarning(context),
         CircularProgressIndicator(color: _primaryColor, strokeWidth: 5),
         const SizedBox(height: 24),
         Text(

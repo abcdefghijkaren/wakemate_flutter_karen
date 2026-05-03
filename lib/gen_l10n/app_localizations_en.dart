@@ -48,10 +48,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unitHours => ' hours';
 
   @override
-  String get wakeTime => 'Wake Time';
+  String get wakeTime => 'Target Alertness Period';
 
   @override
-  String get sleepTime => 'Sleep Time';
+  String get sleepTime => 'Actual Sleep Period';
 
   @override
   String get caffeineLog => 'Caffeine Log';
@@ -69,7 +69,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alertnessTestTitle => 'Alertness Test';
 
   @override
-  String get tapToStart => 'Tap to Start';
+  String get tapToStart => 'When the color changes, tap immediately.';
 
   @override
   String get pleaseWait => 'Please wait...';
@@ -97,10 +97,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get selectKssLevel => 'Select your alertness level (KSS):';
+  String get selectKssLevel => 'Select your alertness level:';
 
   @override
-  String get chooseKssScore => 'Select KSS score';
+  String get chooseKssScore => 'Select alertness level';
 
   @override
   String get testAgain => 'Test Again';
@@ -118,9 +118,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get networkErrorCannotSubmit => 'Network error. Unable to submit data';
-
-  @override
-  String get tapHere => 'Tap Here';
 
   @override
   String get startTest => 'Start Test';
@@ -407,7 +404,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noResponseContent => 'No response content';
 
   @override
-  String get wakePageTitle => 'Set Target Wake Period';
+  String get wakePageTitle => 'Set Target Alertness Period';
 
   @override
   String get wakeDescription =>
@@ -443,7 +440,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String wakeSlotTitle(Object index) {
-    return 'Wake Slot #$index';
+    return 'Target Alertness Period #$index';
   }
 
   @override
@@ -456,7 +453,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addTimeSlot => 'Add Slot';
 
   @override
-  String get saveWakeTime => 'Save Wake Period';
+  String get saveWakeTime => 'Save Target Alertness Period';
 
   @override
   String get timeExampleStart => 'e.g. 05:00';
@@ -494,10 +491,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noActualSleepRecord => 'No actual sleep record';
 
   @override
-  String get targetWakePeriod => 'Target Wake Period';
+  String get targetWakePeriod => 'Target Alertness Period';
 
   @override
-  String get noTargetWakePeriodRecord => 'No target wake period record';
+  String get noTargetWakePeriodRecord => 'No target alertness period recorded';
 
   @override
   String get noCaffeineIntakeRecord => 'No caffeine intake record';
@@ -584,7 +581,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recommendationUpdatedButNotificationFailed =>
-      'Recommendation updated but notification scheduling failed';
+      'Some notifications were not scheduled because the recommended time has passed. Your recommendation is still valid—please follow the on-screen guidance.';
 
   @override
   String get noNewRecommendationData => 'No new recommendation available';
@@ -653,4 +650,101 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backToHomePage => 'Back to Home';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get deleteRecordTitle => 'Delete record';
+
+  @override
+  String get deleteRecordMessage =>
+      'This record will be deleted. Do you want to continue?';
+
+  @override
+  String get editSleepRecord => 'Edit sleep record';
+
+  @override
+  String get editWakePeriod => 'Edit Target Alertness Period';
+
+  @override
+  String get editCaffeineIntake => 'Edit caffeine intake';
+
+  @override
+  String get intakeTimeLabel => 'Intake time';
+
+  @override
+  String get drinkNameLabel => 'Drink name';
+
+  @override
+  String get caffeineAmountLabel => 'Caffeine amount (mg)';
+
+  @override
+  String get dateTimeHint => 'yyyy-MM-dd HH:mm';
+
+  @override
+  String get deletedSuccessfully => 'Deleted successfully';
+
+  @override
+  String get updatedSuccessfully => 'Updated successfully';
+
+  @override
+  String get deleteFailed => 'Delete failed';
+
+  @override
+  String get updateFailed => 'Update failed';
+
+  @override
+  String get invalidDateTimeFormat =>
+      'Invalid datetime format. Use yyyy-MM-dd HH:mm';
+
+  @override
+  String get invalidCaffeineAmount => 'Please enter a valid caffeine amount';
+
+  @override
+  String get emptyDrinkName => 'Please enter a drink name';
+
+  @override
+  String get endTimeMustBeLater => 'End time must be later than start time';
+
+  @override
+  String mergedFromRecords(int count) {
+    return 'Merged from $count records';
+  }
+
+  @override
+  String get singleRecordCount => '1 record';
+
+  @override
+  String get originalRecord => 'Original record';
+
+  @override
+  String get pvtKssBaselineTestTitle =>
+      'Please complete a baseline alertness test';
+
+  @override
+  String pvtKssBaselineTestBody(String time) {
+    return 'You are scheduled to take caffeine at $time. Please complete one alertness test before intake.';
+  }
+
+  @override
+  String get pvtKssEffectTestTitle => 'Please complete the post-caffeine test';
+
+  @override
+  String pvtKssEffectTestBody(String time) {
+    return 'You are now within the caffeine effect window. Please complete one alertness test to evaluate the effect.';
+  }
+
+  @override
+  String get avoidCaffeineBeforeSleepWarning =>
+      'To protect your sleep quality, please avoid caffeine within 6 hours before sleep.';
 }

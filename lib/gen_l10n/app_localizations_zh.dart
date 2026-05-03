@@ -69,7 +69,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get alertnessTestTitle => 'Alertness Test';
 
   @override
-  String get tapToStart => 'Tap to Start';
+  String get tapToStart => 'When the color changes, tap immediately.';
 
   @override
   String get pleaseWait => 'Please wait...';
@@ -97,10 +97,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get selectKssLevel => 'Select your alertness level (KSS):';
+  String get selectKssLevel => 'Select your alertness level:';
 
   @override
-  String get chooseKssScore => 'Select KSS score';
+  String get chooseKssScore => 'Select alertness level';
 
   @override
   String get testAgain => 'Test Again';
@@ -118,9 +118,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get networkErrorCannotSubmit => 'Network error. Unable to submit data';
-
-  @override
-  String get tapHere => 'Tap Here';
 
   @override
   String get startTest => 'Start Test';
@@ -407,7 +404,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get noResponseContent => 'No response content';
 
   @override
-  String get wakePageTitle => 'Set Target Wake Period';
+  String get wakePageTitle => 'Set Target Alertness Period';
 
   @override
   String get wakeDescription =>
@@ -443,7 +440,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String wakeSlotTitle(Object index) {
-    return 'Wake Slot #$index';
+    return 'Target Alertness Period #$index';
   }
 
   @override
@@ -456,7 +453,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get addTimeSlot => 'Add Slot';
 
   @override
-  String get saveWakeTime => 'Save Wake Period';
+  String get saveWakeTime => 'Save Target Alertness Period';
 
   @override
   String get timeExampleStart => 'e.g. 05:00';
@@ -494,10 +491,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get noActualSleepRecord => 'No actual sleep record';
 
   @override
-  String get targetWakePeriod => 'Target Wake Period';
+  String get targetWakePeriod => 'Target Alertness Period';
 
   @override
-  String get noTargetWakePeriodRecord => 'No target wake period record';
+  String get noTargetWakePeriodRecord => 'No target alertness period recorded';
 
   @override
   String get noCaffeineIntakeRecord => 'No caffeine intake record';
@@ -584,7 +581,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get recommendationUpdatedButNotificationFailed =>
-      'Recommendation updated but notification scheduling failed';
+      'Some notifications were not scheduled because the recommended time has passed. Your recommendation is still valid—please follow the on-screen guidance.';
 
   @override
   String get noNewRecommendationData => 'No new recommendation available';
@@ -653,6 +650,103 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get backToHomePage => 'Back to Home';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get deleteRecordTitle => 'Delete record';
+
+  @override
+  String get deleteRecordMessage =>
+      'This record will be deleted. Do you want to continue?';
+
+  @override
+  String get editSleepRecord => 'Edit sleep record';
+
+  @override
+  String get editWakePeriod => 'Edit Target Alertness Period';
+
+  @override
+  String get editCaffeineIntake => 'Edit caffeine intake';
+
+  @override
+  String get intakeTimeLabel => 'Intake time';
+
+  @override
+  String get drinkNameLabel => 'Drink name';
+
+  @override
+  String get caffeineAmountLabel => 'Caffeine amount (mg)';
+
+  @override
+  String get dateTimeHint => 'yyyy-MM-dd HH:mm';
+
+  @override
+  String get deletedSuccessfully => 'Deleted successfully';
+
+  @override
+  String get updatedSuccessfully => 'Updated successfully';
+
+  @override
+  String get deleteFailed => 'Delete failed';
+
+  @override
+  String get updateFailed => 'Update failed';
+
+  @override
+  String get invalidDateTimeFormat =>
+      'Invalid datetime format. Use yyyy-MM-dd HH:mm';
+
+  @override
+  String get invalidCaffeineAmount => 'Please enter a valid caffeine amount';
+
+  @override
+  String get emptyDrinkName => 'Please enter a drink name';
+
+  @override
+  String get endTimeMustBeLater => 'End time must be later than start time';
+
+  @override
+  String mergedFromRecords(int count) {
+    return 'Merged from $count records';
+  }
+
+  @override
+  String get singleRecordCount => '1 record';
+
+  @override
+  String get originalRecord => 'Original record';
+
+  @override
+  String get pvtKssBaselineTestTitle =>
+      'Please complete a baseline alertness test';
+
+  @override
+  String pvtKssBaselineTestBody(String time) {
+    return 'You are scheduled to take caffeine at $time. Please complete one alertness test before intake.';
+  }
+
+  @override
+  String get pvtKssEffectTestTitle => 'Please complete the post-caffeine test';
+
+  @override
+  String pvtKssEffectTestBody(String time) {
+    return 'You are now within the caffeine effect window. Please complete one alertness test to evaluate the effect.';
+  }
+
+  @override
+  String get avoidCaffeineBeforeSleepWarning =>
+      'To protect your sleep quality, please avoid caffeine within 6 hours before sleep.';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -699,10 +793,10 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get unitHours => ' 小時';
 
   @override
-  String get wakeTime => '清醒時段';
+  String get wakeTime => '目標專注時段';
 
   @override
-  String get sleepTime => '睡眠時段';
+  String get sleepTime => '實際睡眠時段';
 
   @override
   String get caffeineLog => '咖啡因紀錄';
@@ -720,7 +814,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get alertnessTestTitle => '清醒度測試';
 
   @override
-  String get tapToStart => '點擊開始';
+  String get tapToStart => '當色塊變色時，請立即點擊';
 
   @override
   String get pleaseWait => '請等待...';
@@ -748,10 +842,10 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   }
 
   @override
-  String get selectKssLevel => '選擇您覺得的清醒程度 (KSS):';
+  String get selectKssLevel => '選擇您覺得的清醒程度:';
 
   @override
-  String get chooseKssScore => '選擇 KSS 分數';
+  String get chooseKssScore => '選擇清醒程度';
 
   @override
   String get testAgain => '再測一次';
@@ -769,9 +863,6 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get networkErrorCannotSubmit => '網路錯誤，無法送出數據';
-
-  @override
-  String get tapHere => '點擊此處';
 
   @override
   String get startTest => '開始測試';
@@ -1046,7 +1137,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get noResponseContent => '無回應內容';
 
   @override
-  String get wakePageTitle => '設定目標清醒時段';
+  String get wakePageTitle => '設定目標專注時段';
 
   @override
   String get wakeDescription => '請輸入您希望保持清醒或專注的特定時段。';
@@ -1080,7 +1171,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String wakeSlotTitle(Object index) {
-    return '目標清醒時段 #$index';
+    return '目標專注時段 #$index';
   }
 
   @override
@@ -1093,7 +1184,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get addTimeSlot => '新增時段';
 
   @override
-  String get saveWakeTime => '儲存目標清醒時段';
+  String get saveWakeTime => '儲存目標專注時段';
 
   @override
   String get timeExampleStart => '例如：05:00';
@@ -1130,10 +1221,10 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get noActualSleepRecord => '無實際睡眠記錄';
 
   @override
-  String get targetWakePeriod => '目標清醒時段';
+  String get targetWakePeriod => '目標專注時段';
 
   @override
-  String get noTargetWakePeriodRecord => '無目標清醒時段記錄';
+  String get noTargetWakePeriodRecord => '無目標專注時段記錄';
 
   @override
   String get noCaffeineIntakeRecord => '無咖啡因攝取記錄';
@@ -1219,7 +1310,8 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   }
 
   @override
-  String get recommendationUpdatedButNotificationFailed => '推薦已更新，但通知排程失敗';
+  String get recommendationUpdatedButNotificationFailed =>
+      '部分通知未建立，因為建議攝取時間已經過了。不影響本次推薦結果，請直接依畫面上的建議執行。';
 
   @override
   String get noNewRecommendationData => '目前沒有新的推薦資料';
@@ -1284,4 +1376,97 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get backToHomePage => '返回主頁';
+
+  @override
+  String get edit => '編輯';
+
+  @override
+  String get delete => '刪除';
+
+  @override
+  String get cancel => '取消';
+
+  @override
+  String get save => '儲存';
+
+  @override
+  String get deleteRecordTitle => '刪除紀錄';
+
+  @override
+  String get deleteRecordMessage => '此筆紀錄將被刪除，確定要繼續嗎？';
+
+  @override
+  String get editSleepRecord => '編輯睡眠紀錄';
+
+  @override
+  String get editWakePeriod => '編輯目標專注時段';
+
+  @override
+  String get editCaffeineIntake => '編輯咖啡因攝取紀錄';
+
+  @override
+  String get intakeTimeLabel => '攝取時間';
+
+  @override
+  String get drinkNameLabel => '飲料名稱';
+
+  @override
+  String get caffeineAmountLabel => '咖啡因含量（毫克）';
+
+  @override
+  String get dateTimeHint => 'yyyy-MM-dd HH:mm';
+
+  @override
+  String get deletedSuccessfully => '刪除成功';
+
+  @override
+  String get updatedSuccessfully => '更新成功';
+
+  @override
+  String get deleteFailed => '刪除失敗';
+
+  @override
+  String get updateFailed => '更新失敗';
+
+  @override
+  String get invalidDateTimeFormat => '時間格式錯誤，請使用 yyyy-MM-dd HH:mm';
+
+  @override
+  String get invalidCaffeineAmount => '請輸入有效的咖啡因含量';
+
+  @override
+  String get emptyDrinkName => '請輸入飲料名稱';
+
+  @override
+  String get endTimeMustBeLater => '結束時間必須晚於開始時間';
+
+  @override
+  String mergedFromRecords(int count) {
+    return '由 $count 筆紀錄合併';
+  }
+
+  @override
+  String get singleRecordCount => '1 筆紀錄';
+
+  @override
+  String get originalRecord => '原始紀錄';
+
+  @override
+  String get pvtKssBaselineTestTitle => '請先完成清醒度測驗';
+
+  @override
+  String pvtKssBaselineTestBody(String time) {
+    return '您即將於 $time 攝取咖啡因，請先在攝取前完成一次清醒度測驗。';
+  }
+
+  @override
+  String get pvtKssEffectTestTitle => '請完成咖啡因後測';
+
+  @override
+  String pvtKssEffectTestBody(String time) {
+    return '您已接近咖啡因作用期間，請於現在完成一次清醒度測驗，以評估效果。';
+  }
+
+  @override
+  String get avoidCaffeineBeforeSleepWarning => '為保障您的睡眠品質，睡前 6 小時請避免攝取咖啡因。';
 }

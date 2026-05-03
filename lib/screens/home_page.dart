@@ -38,7 +38,6 @@ class _HomePageState extends State<HomePage> {
   final Color _cardColor = Colors.white;
 
   double _totalCaffeine = 0; // mg
-  double _totalSleep = 0; // 小時
 
   @override
   void initState() {
@@ -54,7 +53,6 @@ class _HomePageState extends State<HomePage> {
 
     setState(() {
       _totalCaffeine = prefs.getDouble('caffeine_$dateKey') ?? 0;
-      _totalSleep = prefs.getDouble('sleep_$dateKey') ?? 0;
     });
   }
 
@@ -118,7 +116,7 @@ class _HomePageState extends State<HomePage> {
               const Divider(thickness: 0.8),
               _buildOptionTile(
                 title: l10n.wakeTime,
-                icon: Icons.wb_sunny_outlined,
+                icon: Icons.visibility_outlined,
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.push(
@@ -134,7 +132,7 @@ class _HomePageState extends State<HomePage> {
               ),
               _buildOptionTile(
                 title: l10n.sleepTime,
-                icon: Icons.bed_outlined,
+                icon: Icons.hotel_outlined,
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.push(
@@ -240,50 +238,24 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ],
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.caffeineIntakeToday,
-                        style: TextStyle(
-                          color: _primaryColor.withOpacity(0.7),
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        "${_totalCaffeine.toStringAsFixed(0)}${l10n.unitMg}",
-                        style: TextStyle(
-                          color: _primaryColor,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    l10n.caffeineIntakeToday,
+                    style: TextStyle(
+                      color: _primaryColor.withOpacity(0.7),
+                      fontSize: 14,
+                    ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        l10n.sleepDurationToday,
-                        style: TextStyle(
-                          color: _primaryColor.withOpacity(0.7),
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        "${_totalSleep.toStringAsFixed(1)}${l10n.unitHours}",
-                        style: TextStyle(
-                          color: _accentColor,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 4),
+                  Text(
+                    "${_totalCaffeine.toStringAsFixed(0)}${l10n.unitMg}",
+                    style: TextStyle(
+                      color: _primaryColor,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),

@@ -5,7 +5,15 @@ import 'dart:async';
 import 'dart:io';
 import 'package:intl/intl.dart';
 
-void main() {
+import 'package:my_app/services/notification_service.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await NotificationService.instance.initialize();
+  await NotificationService.instance.requestPermission();
+  await NotificationService.instance.debugNotificationStatus();
+
   runApp(const MyApp());
 }
 
@@ -33,22 +41,19 @@ class CaffeineRecommendationPage extends StatefulWidget {
 class _CaffeineRecommendationPageState
     extends State<CaffeineRecommendationPage> {
   String responseText = "尚未發送請求，請選擇時間後點擊按鈕。";
+
   final _userIdController = TextEditingController(
     text: '550e8400-e29b-41d4-a716-446655440000',
   );
-  final _caffeineAmountController = TextEditingController(
-    text: '100',
-  ); // 新增咖啡因量控制器
-  final _drinkNameController = TextEditingController(
-    text: 'Coffee',
-  ); // 新增飲料名稱控制器
 
-  // 使用 DateTime 物件來儲存時間，方便操作
-  DateTime _targetStart = DateTime(2025, 9, 4, 7);
-  DateTime _targetEnd = DateTime(2025, 9, 4, 23);
-  DateTime _sleepStart = DateTime(2025, 9, 4, 23, 30);
-  DateTime _sleepEnd = DateTime(2025, 9, 5, 6, 45);
-  DateTime _caffeineIntakeTime = DateTime.now(); // 新增咖啡因攝取時間
+  final _caffeineAmountController = TextEditingController(text: '100');
+  final _drinkNameController = TextEditingController(text: 'Coffee');
+
+  DateTime _targetStart = DateTime(2026, 5, 3, 7);
+  DateTime _targetEnd = DateTime(2026, 5, 3, 23);
+  DateTime _sleepStart = DateTime(2026, 5, 3, 23, 30);
+  DateTime _sleepEnd = DateTime(2026, 5, 4, 6, 45);
+  DateTime _caffeineIntakeTime = DateTime.now();
 
   @override
   void dispose() {
@@ -58,13 +63,10 @@ class _CaffeineRecommendationPageState
     super.dispose();
   }
 
-  // 格式化時間，供顯示和傳送
   String _formatDate(DateTime dateTime) {
-    // 假設 API 只需要 UTC 時間，且格式為 ISO 8601
     return DateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(dateTime.toUtc());
   }
 
-  // 顯示日期與時間選擇器並更新時間
   Future<void> _selectDateAndTime(
     BuildContext context, {
     required ValueChanged<DateTime> onDateTimeSelected,
@@ -75,22 +77,25 @@ class _CaffeineRecommendationPageState
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
     );
+
     if (pickedDate == null) return;
 
     final TimeOfDay? pickedTime = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(DateTime.now()),
     );
-    if (pickedTime != null) {
-      final newDateTime = DateTime(
-        pickedDate.year,
-        pickedDate.month,
-        pickedDate.day,
-        pickedTime.hour,
-        pickedTime.minute,
-      );
-      onDateTimeSelected(newDateTime);
-    }
+
+    if (pickedTime == null) return;
+
+    final newDateTime = DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      pickedTime.hour,
+      pickedTime.minute,
+    );
+
+    onDateTimeSelected(newDateTime);
   }
 
   Future<void> sendAllDataAndFetchRecommendation() async {
@@ -98,16 +103,17 @@ class _CaffeineRecommendationPageState
       responseText = "發送請求中，請稍候...";
     });
 
-    final userId = _userIdController.text;
+    final userId = _userIdController.text.trim();
 
     try {
-      // 1. 發送實際睡眠資料到 /users_sleep/
       final sleepData = {
         "user_id": userId,
         "sleep_start_time": _formatDate(_sleepStart),
         "sleep_end_time": _formatDate(_sleepEnd),
       };
+
       const sleepUrl = "https://wakemate-api-4-0.onrender.com/users_sleep/";
+
       final sleepResponse = await http
           .post(
             Uri.parse(sleepUrl),
@@ -124,13 +130,14 @@ class _CaffeineRecommendationPageState
         return;
       }
 
-      // 2. 發送目標清醒資料到 /users_wake/
       final wakeData = {
         "user_id": userId,
         "target_start_time": _formatDate(_targetStart),
         "target_end_time": _formatDate(_targetEnd),
       };
+
       const wakeUrl = "https://wakemate-api-4-0.onrender.com/users_wake/";
+
       final wakeResponse = await http
           .post(
             Uri.parse(wakeUrl),
@@ -147,14 +154,15 @@ class _CaffeineRecommendationPageState
         return;
       }
 
-      // 3. 發送咖啡因攝取資料到 /users_intake/
       final intakeData = {
         "user_id": userId,
-        "drink_name": _drinkNameController.text, // 使用新的控制器
-        "caffeine_amount": int.parse(_caffeineAmountController.text), // 修正鍵名
-        "taking_timestamp": _formatDate(_caffeineIntakeTime), // 修正鍵名
+        "drink_name": _drinkNameController.text.trim(),
+        "caffeine_amount": int.parse(_caffeineAmountController.text.trim()),
+        "taking_timestamp": _formatDate(_caffeineIntakeTime),
       };
+
       const intakeUrl = "https://wakemate-api-4-0.onrender.com/users_intake/";
+
       final intakeResponse = await http
           .post(
             Uri.parse(intakeUrl),
@@ -171,19 +179,22 @@ class _CaffeineRecommendationPageState
         return;
       }
 
-      // 4. 觸發後端計算並獲取建議 (使用 GET 請求)
       final recommendationUrl =
           "https://wakemate-api-4-0.onrender.com/recommendations/?user_id=$userId";
+
       final recommendationResponse = await http
           .get(Uri.parse(recommendationUrl))
           .timeout(const Duration(seconds: 15));
 
       if (recommendationResponse.statusCode == 200) {
         final data = json.decode(recommendationResponse.body);
+
         setState(() {
           responseText =
               "✅ 計算成功，回傳結果：\n${const JsonEncoder.withIndent('  ').convert(data)}";
         });
+
+        await _scheduleNotificationsFromRecommendationData(data);
       } else {
         setState(() {
           responseText =
@@ -205,29 +216,41 @@ class _CaffeineRecommendationPageState
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Caffeine Recommendation 測試")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildInputCard(),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: sendAllDataAndFetchRecommendation,
-                child: const Text("發送資料並取得建議"),
-              ),
-              const SizedBox(height: 20),
-              _buildResponseText(),
-            ],
-          ),
-        ),
-      ),
-    );
+  Future<void> _scheduleNotificationsFromRecommendationData(dynamic data) async {
+    if (data is! List || data.isEmpty) {
+      debugPrint('[NOTI_TEST] no recommendation data found');
+      return;
+    }
+
+    for (int i = 0; i < data.length; i++) {
+      final item = data[i];
+
+      if (item is! Map<String, dynamic>) continue;
+
+      final amountRaw = item['recommended_caffeine_amount'];
+      final timeRaw = item['recommended_caffeine_intake_timing'];
+
+      if (amountRaw == null || timeRaw == null) {
+        debugPrint('[NOTI_TEST] missing amount or time: $item');
+        continue;
+      }
+
+      final int caffeineAmount =
+          amountRaw is int ? amountRaw : int.parse(amountRaw.toString());
+
+      final DateTime recommendationTime =
+          DateTime.parse(timeRaw.toString()).toLocal();
+
+      debugPrint('[NOTI_TEST] schedule recommendation index=$i');
+      debugPrint('[NOTI_TEST] caffeineAmount=$caffeineAmount');
+      debugPrint('[NOTI_TEST] recommendationTime local=$recommendationTime');
+
+      await NotificationService.instance.scheduleFullCaffeineNotificationSet(
+        baseId: 100000 + i * 10,
+        recommendationTime: recommendationTime,
+        caffeineAmount: caffeineAmount,
+      );
+    }
   }
 
   Widget _buildInputCard() {
@@ -235,40 +258,38 @@ class _CaffeineRecommendationPageState
       elevation: 4,
       margin: const EdgeInsets.symmetric(vertical: 10),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text("輸入資料", style: Theme.of(context).textTheme.headlineSmall),
             const Divider(),
             _buildTextField(_userIdController, "user_id"),
-            _buildTimeField("目標清醒開始時間", _targetStart, (DateTime newDateTime) {
+            _buildTimeField("目標清醒開始時間", _targetStart, (value) {
               setState(() {
-                _targetStart = newDateTime;
+                _targetStart = value;
               });
             }),
-            _buildTimeField("目標清醒結束時間", _targetEnd, (DateTime newDateTime) {
+            _buildTimeField("目標清醒結束時間", _targetEnd, (value) {
               setState(() {
-                _targetEnd = newDateTime;
+                _targetEnd = value;
               });
             }),
-            _buildTimeField("實際睡眠開始時間", _sleepStart, (DateTime newDateTime) {
+            _buildTimeField("實際睡眠開始時間", _sleepStart, (value) {
               setState(() {
-                _sleepStart = newDateTime;
+                _sleepStart = value;
               });
             }),
-            _buildTimeField("實際睡眠結束時間", _sleepEnd, (DateTime newDateTime) {
+            _buildTimeField("實際睡眠結束時間", _sleepEnd, (value) {
               setState(() {
-                _sleepEnd = newDateTime;
+                _sleepEnd = value;
               });
             }),
-            _buildTextField(_drinkNameController, "飲料名稱"), // 新增飲料名稱輸入框
+            _buildTextField(_drinkNameController, "飲料名稱"),
             _buildTextField(_caffeineAmountController, "咖啡因攝取量 (mg)"),
-            _buildTimeField("咖啡因攝取時間", _caffeineIntakeTime, (
-              DateTime newDateTime,
-            ) {
+            _buildTimeField("咖啡因攝取時間", _caffeineIntakeTime, (value) {
               setState(() {
-                _caffeineIntakeTime = newDateTime;
+                _caffeineIntakeTime = value;
               });
             }),
           ],
@@ -279,7 +300,7 @@ class _CaffeineRecommendationPageState
 
   Widget _buildTextField(TextEditingController controller, String label) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: TextField(
         controller: controller,
         decoration: InputDecoration(
@@ -298,8 +319,9 @@ class _CaffeineRecommendationPageState
     final textController = TextEditingController(
       text: DateFormat("yyyy-MM-dd HH:mm").format(time),
     );
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: TextFormField(
         controller: textController,
         readOnly: true,
@@ -308,11 +330,10 @@ class _CaffeineRecommendationPageState
           labelText: label,
           suffixIcon: const Icon(Icons.calendar_today),
         ),
-        onTap:
-            () => _selectDateAndTime(
-              context,
-              onDateTimeSelected: onDateTimeSelected,
-            ),
+        onTap: () => _selectDateAndTime(
+          context,
+          onDateTimeSelected: onDateTimeSelected,
+        ),
       ),
     );
   }
@@ -341,10 +362,9 @@ class _CaffeineRecommendationPageState
               ),
             ),
             TextSpan(
-              text:
-                  isSuccess
-                      ? responseText.substring("✅ 計算成功，回傳結果：\n".length)
-                      : responseText,
+              text: isSuccess
+                  ? responseText.substring("✅ 計算成功，回傳結果：\n".length)
+                  : responseText,
               style: TextStyle(
                 fontFamily: isSuccess ? 'monospace' : null,
                 fontSize: 14,
@@ -352,6 +372,33 @@ class _CaffeineRecommendationPageState
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Caffeine Recommendation 測試"),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildInputCard(),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: sendAllDataAndFetchRecommendation,
+                child: const Text("發送資料並取得建議"),
+              ),
+              const SizedBox(height: 20),
+              _buildResponseText(),
+            ],
+          ),
         ),
       ),
     );

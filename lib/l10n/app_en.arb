@@ -15,15 +15,15 @@
   "sleepDurationToday": "Today's Sleep Duration",
   "unitMg": " mg",
   "unitHours": " hours",
-  "wakeTime": "Wake Time",
-  "sleepTime": "Sleep Time",
+  "wakeTime": "Target Alertness Period",
+  "sleepTime": "Actual Sleep Period",
   "caffeineLog": "Caffeine Log",
   "inputHistory": "Input History",
   "calculateRecommendation": "Calculate",
   "recommendationHistory": "History",
 
   "alertnessTestTitle": "Alertness Test",
-  "tapToStart": "Tap to Start",
+  "tapToStart": "When the color changes, tap immediately.",
   "pleaseWait": "Please wait...",
   "pleaseTap": "Tap now!",
   "tapTooSoon": "❌ Too early! Try again",
@@ -48,8 +48,8 @@
       }
     }
   },
-  "selectKssLevel": "Select your alertness level (KSS):",
-  "chooseKssScore": "Select KSS score",
+  "selectKssLevel": "Select your alertness level:",
+  "chooseKssScore": "Select alertness level",
   "testAgain": "Test Again",
   "finishAndClose": "Finish and Close",
   "dataSentSuccess": "Data sent successfully!",
@@ -62,7 +62,6 @@
     }
   },
   "networkErrorCannotSubmit": "Network error. Unable to submit data",
-  "tapHere": "Tap Here",
   "startTest": "Start Test",
   "kssLevel1": "Extremely alert",
   "kssLevel2": "Very alert",
@@ -200,7 +199,7 @@
 
 
 
-  "wakePageTitle": "Set Target Wake Period",
+  "wakePageTitle": "Set Target Alertness Period",
   "wakeDescription": "Enter the time periods you want to stay alert.",
   "wakeFillAllTimeSlots": "Please fill all time slots.",
   "wakeEndBeforeStart": "End time cannot be earlier than start time.",
@@ -209,11 +208,11 @@
   "wakeSaveAllSuccess": "Saved {count} slots successfully",
   "wakePartialSuccess": "{success} success, {fail} failed",
   "wakeAllFailed": "All submissions failed",
-  "wakeSlotTitle": "Wake Slot #{index}",
+  "wakeSlotTitle": "Target Alertness Period #{index}",
   "startTime": "Start Time",
   "endTime": "End Time",
   "addTimeSlot": "Add Slot",
-  "saveWakeTime": "Save Wake Period",
+  "saveWakeTime": "Save Target Alertness Period",
   "timeExampleStart": "e.g. 05:00",
   "timeExampleEnd": "e.g. 06:00",
 
@@ -241,8 +240,8 @@
   "yourInputHistory": "Your Input History",
   "actualSleepCycle": "Actual Sleep Cycle",
   "noActualSleepRecord": "No actual sleep record",
-  "targetWakePeriod": "Target Wake Period",
-  "noTargetWakePeriodRecord": "No target wake period record",
+  "targetWakePeriod": "Target Alertness Period",
+  "noTargetWakePeriodRecord": "No target alertness period recorded",
   "caffeineIntake": "Caffeine Intake",
   "noCaffeineIntakeRecord": "No caffeine intake record",
   "startTime": "Start Time",
@@ -303,7 +302,7 @@
     }
   },
 
-  "recommendationUpdatedButNotificationFailed": "Recommendation updated but notification scheduling failed",
+  "recommendationUpdatedButNotificationFailed": "Some notifications were not scheduled because the recommended time has passed. Your recommendation is still valid—please follow the on-screen guidance.",
 
   "noNewRecommendationData": "No new recommendation available",
   "noNewRecommendationDataMessage": "No new recommendation available.",
@@ -359,8 +358,69 @@
 
   "oopsCalculationFailed": "Oops! Calculation failed",
   "retry": "Retry",
-  "backToHomePage": "Back to Home"
+  "backToHomePage": "Back to Home",
 
 
+  "edit": "Edit",
+  "delete": "Delete",
+  "cancel": "Cancel",
+  "save": "Save",
+
+  "deleteRecordTitle": "Delete record",
+  "deleteRecordMessage": "This record will be deleted. Do you want to continue?",
+
+  "editSleepRecord": "Edit sleep record",
+  "editWakePeriod": "Edit Target Alertness Period",
+  "editCaffeineIntake": "Edit caffeine intake",
+
+  "intakeTimeLabel": "Intake time",
+  "drinkNameLabel": "Drink name",
+  "caffeineAmountLabel": "Caffeine amount (mg)",
+  "dateTimeHint": "yyyy-MM-dd HH:mm",
+
+  "deletedSuccessfully": "Deleted successfully",
+  "updatedSuccessfully": "Updated successfully",
+  "deleteFailed": "Delete failed",
+  "updateFailed": "Update failed",
+
+  "invalidDateTimeFormat": "Invalid datetime format. Use yyyy-MM-dd HH:mm",
+  "invalidCaffeineAmount": "Please enter a valid caffeine amount",
+  "emptyDrinkName": "Please enter a drink name",
+  "endTimeMustBeLater": "End time must be later than start time",
+
+  "mergedFromRecords": "Merged from {count} records",
+  "@mergedFromRecords": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "singleRecordCount": "1 record",
+  "originalRecord": "Original record",
+
+
+  "pvtKssBaselineTestTitle": "Please complete a baseline alertness test",
+  "pvtKssBaselineTestBody": "You are scheduled to take caffeine at {time}. Please complete one alertness test before intake.",
+  "@pvtKssBaselineTestBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+
+  "pvtKssEffectTestTitle": "Please complete the post-caffeine test",
+  "pvtKssEffectTestBody": "You are now within the caffeine effect window. Please complete one alertness test to evaluate the effect.",
+  "@pvtKssEffectTestBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+
+  "avoidCaffeineBeforeSleepWarning": "To protect your sleep quality, please avoid caffeine within 6 hours before sleep."
 
 }

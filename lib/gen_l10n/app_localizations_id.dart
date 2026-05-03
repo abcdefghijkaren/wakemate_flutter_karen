@@ -48,10 +48,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get unitHours => ' jam';
 
   @override
-  String get wakeTime => 'Waktu Bangun';
+  String get wakeTime => 'Periode Target Tetap Terjaga';
 
   @override
-  String get sleepTime => 'Waktu Tidur';
+  String get sleepTime => 'Periode Tidur Aktual';
 
   @override
   String get caffeineLog => 'Catatan Kafein';
@@ -69,7 +69,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get alertnessTestTitle => 'Tes Kewaspadaan';
 
   @override
-  String get tapToStart => 'Ketuk untuk Memulai';
+  String get tapToStart => 'Ketika warna berubah, segera ketuk layar.';
 
   @override
   String get pleaseWait => 'Silakan tunggu...';
@@ -97,10 +97,10 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get selectKssLevel => 'Pilih tingkat kewaspadaan Anda (KSS):';
+  String get selectKssLevel => 'Pilih tingkat kewaspadaan Anda:';
 
   @override
-  String get chooseKssScore => 'Pilih skor KSS';
+  String get chooseKssScore => 'Pilih tingkat kewaspadaan Anda';
 
   @override
   String get testAgain => 'Tes Lagi';
@@ -119,9 +119,6 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get networkErrorCannotSubmit =>
       'Kesalahan jaringan, tidak dapat mengirim data';
-
-  @override
-  String get tapHere => 'Ketuk di Sini';
 
   @override
   String get startTest => 'Mulai Tes';
@@ -411,7 +408,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get noResponseContent => 'Tidak ada isi respons';
 
   @override
-  String get wakePageTitle => 'Atur Waktu Bangun Target';
+  String get wakePageTitle => 'Atur Periode Target Tetap Terjaga';
 
   @override
   String get wakeDescription =>
@@ -446,7 +443,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String wakeSlotTitle(Object index) {
-    return 'Slot #$index';
+    return 'Periode Target Tetap Terjaga #$index';
   }
 
   @override
@@ -459,7 +456,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get addTimeSlot => 'Tambah Slot';
 
   @override
-  String get saveWakeTime => 'Simpan Waktu Bangun';
+  String get saveWakeTime => 'Simpan Periode Target Tetap Terjaga';
 
   @override
   String get timeExampleStart => 'contoh: 05:00';
@@ -497,11 +494,11 @@ class AppLocalizationsId extends AppLocalizations {
   String get noActualSleepRecord => 'Tidak ada catatan tidur aktual';
 
   @override
-  String get targetWakePeriod => 'Periode Bangun Target';
+  String get targetWakePeriod => 'Periode Target Tetap Terjaga';
 
   @override
   String get noTargetWakePeriodRecord =>
-      'Tidak ada catatan periode bangun target';
+      'Belum ada catatan periode target tetap terjaga';
 
   @override
   String get noCaffeineIntakeRecord => 'Tidak ada catatan asupan kafein';
@@ -589,7 +586,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get recommendationUpdatedButNotificationFailed =>
-      'Rekomendasi berhasil, tetapi notifikasi gagal';
+      'Beberapa notifikasi tidak dibuat karena waktu yang direkomendasikan sudah lewat. Rekomendasi tetap berlaku—silakan ikuti petunjuk di layar.';
 
   @override
   String get noNewRecommendationData => 'Tidak ada rekomendasi baru';
@@ -655,4 +652,102 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get backToHomePage => 'Kembali';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
+  String get delete => 'Hapus';
+
+  @override
+  String get cancel => 'Batal';
+
+  @override
+  String get save => 'Simpan';
+
+  @override
+  String get deleteRecordTitle => 'Hapus catatan';
+
+  @override
+  String get deleteRecordMessage =>
+      'Catatan ini akan dihapus. Apakah Anda ingin melanjutkan?';
+
+  @override
+  String get editSleepRecord => 'Edit catatan tidur';
+
+  @override
+  String get editWakePeriod => 'Edit Periode Target Tetap Terjaga';
+
+  @override
+  String get editCaffeineIntake => 'Edit asupan kafein';
+
+  @override
+  String get intakeTimeLabel => 'Waktu konsumsi';
+
+  @override
+  String get drinkNameLabel => 'Nama minuman';
+
+  @override
+  String get caffeineAmountLabel => 'Jumlah kafein (mg)';
+
+  @override
+  String get dateTimeHint => 'yyyy-MM-dd HH:mm';
+
+  @override
+  String get deletedSuccessfully => 'Berhasil dihapus';
+
+  @override
+  String get updatedSuccessfully => 'Berhasil diperbarui';
+
+  @override
+  String get deleteFailed => 'Gagal menghapus';
+
+  @override
+  String get updateFailed => 'Gagal memperbarui';
+
+  @override
+  String get invalidDateTimeFormat =>
+      'Format waktu tidak valid. Gunakan yyyy-MM-dd HH:mm';
+
+  @override
+  String get invalidCaffeineAmount => 'Masukkan jumlah kafein yang valid';
+
+  @override
+  String get emptyDrinkName => 'Masukkan nama minuman';
+
+  @override
+  String get endTimeMustBeLater =>
+      'Waktu selesai harus lebih lambat dari waktu mulai';
+
+  @override
+  String mergedFromRecords(int count) {
+    return 'Digabung dari $count catatan';
+  }
+
+  @override
+  String get singleRecordCount => '1 catatan';
+
+  @override
+  String get originalRecord => 'Catatan asli';
+
+  @override
+  String get pvtKssBaselineTestTitle => 'Silakan lakukan tes kewaspadaan awal';
+
+  @override
+  String pvtKssBaselineTestBody(String time) {
+    return 'Anda dijadwalkan mengonsumsi kafein pada $time. Silakan lakukan satu tes kewaspadaan sebelum mengonsumsi.';
+  }
+
+  @override
+  String get pvtKssEffectTestTitle =>
+      'Silakan lakukan tes setelah konsumsi kafein';
+
+  @override
+  String pvtKssEffectTestBody(String time) {
+    return 'Anda sekarang berada dalam periode efek kafein. Silakan lakukan satu tes kewaspadaan untuk mengevaluasi efeknya.';
+  }
+
+  @override
+  String get avoidCaffeineBeforeSleepWarning =>
+      'Untuk menjaga kualitas tidur Anda, hindari konsumsi kafein dalam 6 jam sebelum tidur.';
 }

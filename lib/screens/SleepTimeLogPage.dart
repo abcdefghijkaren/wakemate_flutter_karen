@@ -254,7 +254,7 @@ class _ActualSleepTimePageState extends State<ActualSleepTimePage> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 prefixIcon: Icon(
-                  Icons.bedtime_outlined,
+                  Icons.hotel_outlined,
                   color: _primaryColor,
                 ),
                 hintText: loc.sleepStartExample,

@@ -15,15 +15,15 @@
   "sleepDurationToday": "Durasi Tidur Hari Ini",
   "unitMg": " mg",
   "unitHours": " jam",
-  "wakeTime": "Waktu Bangun",
-  "sleepTime": "Waktu Tidur",
+  "wakeTime": "Periode Target Tetap Terjaga",
+  "sleepTime": "Periode Tidur Aktual",
   "caffeineLog": "Catatan Kafein",
   "inputHistory": "Riwayat Input",
   "calculateRecommendation": "Hitung Rekomendasi",
   "recommendationHistory": "Riwayat Rekomendasi",
 
   "alertnessTestTitle": "Tes Kewaspadaan",
-  "tapToStart": "Ketuk untuk Memulai",
+  "tapToStart": "Ketika warna berubah, segera ketuk layar.",
   "pleaseWait": "Silakan tunggu...",
   "pleaseTap": "Ketuk sekarang!",
   "tapTooSoon": "❌ Terlalu cepat! Coba lagi",
@@ -48,8 +48,8 @@
       }
     }
   },
-  "selectKssLevel": "Pilih tingkat kewaspadaan Anda (KSS):",
-  "chooseKssScore": "Pilih skor KSS",
+  "selectKssLevel": "Pilih tingkat kewaspadaan Anda:",
+  "chooseKssScore": "Pilih tingkat kewaspadaan Anda",
   "testAgain": "Tes Lagi",
   "finishAndClose": "Selesai dan Tutup",
   "dataSentSuccess": "Data berhasil dikirim!",
@@ -62,7 +62,6 @@
     }
   },
   "networkErrorCannotSubmit": "Kesalahan jaringan, tidak dapat mengirim data",
-  "tapHere": "Ketuk di Sini",
   "startTest": "Mulai Tes",
   "kssLevel1": "Sangat waspada",
   "kssLevel2": "Sangat terjaga",
@@ -200,7 +199,7 @@
 
 
 
-  "wakePageTitle": "Atur Waktu Bangun Target",
+  "wakePageTitle": "Atur Periode Target Tetap Terjaga",
   "wakeDescription": "Masukkan periode waktu Anda ingin tetap terjaga.",
   "wakeFillAllTimeSlots": "Harap isi semua waktu.",
   "wakeEndBeforeStart": "Waktu selesai tidak boleh lebih awal.",
@@ -209,11 +208,11 @@
   "wakeSaveAllSuccess": "Berhasil menyimpan {count} slot",
   "wakePartialSuccess": "{success} berhasil, {fail} gagal",
   "wakeAllFailed": "Semua gagal",
-  "wakeSlotTitle": "Slot #{index}",
+  "wakeSlotTitle": "Periode Target Tetap Terjaga #{index}",
   "startTime": "Waktu Mulai",
   "endTime": "Waktu Selesai",
   "addTimeSlot": "Tambah Slot",
-  "saveWakeTime": "Simpan Waktu Bangun",
+  "saveWakeTime": "Simpan Periode Target Tetap Terjaga",
   "timeExampleStart": "contoh: 05:00",
   "timeExampleEnd": "contoh: 06:00",
 
@@ -241,8 +240,8 @@
   "yourInputHistory": "Riwayat Input Anda",
   "actualSleepCycle": "Siklus Tidur Aktual",
   "noActualSleepRecord": "Tidak ada catatan tidur aktual",
-  "targetWakePeriod": "Periode Bangun Target",
-  "noTargetWakePeriodRecord": "Tidak ada catatan periode bangun target",
+  "targetWakePeriod": "Periode Target Tetap Terjaga",
+  "noTargetWakePeriodRecord": "Belum ada catatan periode target tetap terjaga",
   "caffeineIntake": "Asupan Kafein",
   "noCaffeineIntakeRecord": "Tidak ada catatan asupan kafein",
   "startTime": "Waktu Mulai",
@@ -303,7 +302,7 @@
     }
   },
 
-  "recommendationUpdatedButNotificationFailed": "Rekomendasi berhasil, tetapi notifikasi gagal",
+  "recommendationUpdatedButNotificationFailed": "Beberapa notifikasi tidak dibuat karena waktu yang direkomendasikan sudah lewat. Rekomendasi tetap berlaku—silakan ikuti petunjuk di layar.",
 
   "noNewRecommendationData": "Tidak ada rekomendasi baru",
   "noNewRecommendationDataMessage": "Tidak ada rekomendasi baru.",
@@ -359,8 +358,68 @@
 
   "oopsCalculationFailed": "Oops! Perhitungan gagal",
   "retry": "Coba lagi",
-  "backToHomePage": "Kembali"
+  "backToHomePage": "Kembali",
 
 
+  "edit": "Edit",
+  "delete": "Hapus",
+  "cancel": "Batal",
+  "save": "Simpan",
+
+  "deleteRecordTitle": "Hapus catatan",
+  "deleteRecordMessage": "Catatan ini akan dihapus. Apakah Anda ingin melanjutkan?",
+
+  "editSleepRecord": "Edit catatan tidur",
+  "editWakePeriod": "Edit Periode Target Tetap Terjaga",
+  "editCaffeineIntake": "Edit asupan kafein",
+
+  "intakeTimeLabel": "Waktu konsumsi",
+  "drinkNameLabel": "Nama minuman",
+  "caffeineAmountLabel": "Jumlah kafein (mg)",
+  "dateTimeHint": "yyyy-MM-dd HH:mm",
+
+  "deletedSuccessfully": "Berhasil dihapus",
+  "updatedSuccessfully": "Berhasil diperbarui",
+  "deleteFailed": "Gagal menghapus",
+  "updateFailed": "Gagal memperbarui",
+
+  "invalidDateTimeFormat": "Format waktu tidak valid. Gunakan yyyy-MM-dd HH:mm",
+  "invalidCaffeineAmount": "Masukkan jumlah kafein yang valid",
+  "emptyDrinkName": "Masukkan nama minuman",
+  "endTimeMustBeLater": "Waktu selesai harus lebih lambat dari waktu mulai",
+
+  "mergedFromRecords": "Digabung dari {count} catatan",
+  "@mergedFromRecords": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "singleRecordCount": "1 catatan",
+  "originalRecord": "Catatan asli",
+
+  "pvtKssBaselineTestTitle": "Silakan lakukan tes kewaspadaan awal",
+  "pvtKssBaselineTestBody": "Anda dijadwalkan mengonsumsi kafein pada {time}. Silakan lakukan satu tes kewaspadaan sebelum mengonsumsi.",
+  "@pvtKssBaselineTestBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+
+  "pvtKssEffectTestTitle": "Silakan lakukan tes setelah konsumsi kafein",
+  "pvtKssEffectTestBody": "Anda sekarang berada dalam periode efek kafein. Silakan lakukan satu tes kewaspadaan untuk mengevaluasi efeknya.",
+  "@pvtKssEffectTestBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+
+  "avoidCaffeineBeforeSleepWarning": "Untuk menjaga kualitas tidur Anda, hindari konsumsi kafein dalam 6 jam sebelum tidur."
 
 }

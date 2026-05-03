@@ -461,18 +461,6 @@ class _AlertnessTestPageState extends State<AlertnessTestPage> {
                       ),
                     ],
                   ),
-                  alignment: Alignment.center,
-                  child:
-                      !_testStarted
-                          ? Text(
-                            l10n.tapHere,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          )
-                          : const SizedBox.shrink(),
                 ),
               ),
               const SizedBox(height: 40),

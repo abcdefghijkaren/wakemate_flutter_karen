@@ -29,6 +29,42 @@ class _CaffeineHistoryPageState extends State<CaffeineHistoryPage> {
   List<dynamic> _allData = [];
   bool _loading = true;
 
+  Widget buildSleepProtectionWarning(BuildContext context) {
+      final loc = AppLocalizations.of(context)!;
+
+      return Container(
+        width: double.infinity,
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.orange.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.orange.shade200),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(
+              Icons.warning_amber_rounded,
+              color: Colors.orange,
+              size: 22,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                loc.avoidCaffeineBeforeSleepWarning,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black87,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
   @override
   void initState() {
     super.initState();
@@ -56,6 +92,7 @@ class _CaffeineHistoryPageState extends State<CaffeineHistoryPage> {
         });
       }
     } catch (e) {
+      debugPrint('載入推薦歷史失敗: $e');
       if (mounted) {
         setState(() {
           _allData = [];
@@ -75,37 +112,50 @@ class _CaffeineHistoryPageState extends State<CaffeineHistoryPage> {
     data = data.where((item) {
       final String? displayDate = item['display_date']?.toString();
 
-      // ⭐ 新版資料：優先用 display_date 刪
+      // 新版資料：優先用 display_date 刪
       if (displayDate != null && displayDate.isNotEmpty) {
         return displayDate != selectedDateStr;
       }
 
-      // ⭐ 舊版資料：退回舊邏輯
-      final String timingStr =
-          item['recommended_caffeine_intake_timing'] ?? '';
+      // 舊版資料：退回舊邏輯
+      final String timingStr = item['recommended_caffeine_intake_timing'] ?? '';
       if (timingStr.isEmpty) return true;
 
-      final DateTime? localDateTime = _parseAndLocalize(timingStr);
+      final DateTime? localDateTime = _parseRecommendationTime(timingStr);
       if (localDateTime == null) return true;
 
-      final String itemDateStr =
-          DateFormat('yyyy-MM-dd').format(localDateTime);
-
+      final String itemDateStr = DateFormat('yyyy-MM-dd').format(localDateTime);
       return itemDateStr != selectedDateStr;
     }).toList();
 
     await prefs.setString('caffeine_recommendations', jsonEncode(data));
 
-    setState(() {
-      _allData = data;
-    });
+    if (mounted) {
+      setState(() {
+        _allData = data;
+      });
+    }
   }
 
-  DateTime? _parseAndLocalize(String? datetimeStr) {
-    if (datetimeStr == null || datetimeStr.isEmpty) return null;
+  DateTime? _parseRecommendationTime(String? datetimeStr) {
+    if (datetimeStr == null || datetimeStr.trim().isEmpty) return null;
+
     try {
-      return DateTime.parse(datetimeStr).toLocal();
+      final parsed = DateTime.parse(datetimeStr.trim());
+
+      // 不做任何時區轉換，只保留牆上時間
+      return DateTime(
+        parsed.year,
+        parsed.month,
+        parsed.day,
+        parsed.hour,
+        parsed.minute,
+        parsed.second,
+        parsed.millisecond,
+        parsed.microsecond,
+      );
     } catch (e) {
+      debugPrint('Recommendation time parse failed: $datetimeStr, error: $e');
       return null;
     }
   }
@@ -118,22 +168,19 @@ class _CaffeineHistoryPageState extends State<CaffeineHistoryPage> {
     return _allData.where((item) {
       final String? displayDate = item['display_date']?.toString();
 
-      // ⭐ 新版資料：優先用 display_date 顯示
+      // 新版資料：優先用 display_date 顯示
       if (displayDate != null && displayDate.isNotEmpty) {
         return displayDate == selectedDateStr;
       }
 
-      // ⭐ 舊版資料：退回舊邏輯
-      final String timingStr =
-          item['recommended_caffeine_intake_timing'] ?? '';
+      // 舊版資料：退回舊邏輯
+      final String timingStr = item['recommended_caffeine_intake_timing'] ?? '';
       if (timingStr.isEmpty) return false;
 
-      final DateTime? localDateTime = _parseAndLocalize(timingStr);
+      final DateTime? localDateTime = _parseRecommendationTime(timingStr);
       if (localDateTime == null) return false;
 
-      final String itemDateStr =
-          DateFormat('yyyy-MM-dd').format(localDateTime);
-
+      final String itemDateStr = DateFormat('yyyy-MM-dd').format(localDateTime);
       return itemDateStr == selectedDateStr;
     }).toList();
   }
@@ -163,15 +210,17 @@ class _CaffeineHistoryPageState extends State<CaffeineHistoryPage> {
 
     final historyForSelectedDate = _filterSelectedDateData();
     final hasHistory = historyForSelectedDate.isNotEmpty;
-    final formattedDate =
-        DateFormat('yyyy/MM/dd').format(widget.selectedDate);
+    final formattedDate = DateFormat('yyyy/MM/dd').format(widget.selectedDate);
 
     return Scaffold(
       backgroundColor: _backgroundColor,
       appBar: AppBar(
         title: Text(
           loc.caffeineHistoryTitle(formattedDate),
-          style: TextStyle(color: _primaryColor, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: _primaryColor,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
@@ -183,105 +232,113 @@ class _CaffeineHistoryPageState extends State<CaffeineHistoryPage> {
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : hasHistory
-              ? ListView.builder(
-                  padding: const EdgeInsets.all(16.0),
-                  itemCount: historyForSelectedDate.length,
-                  itemBuilder: (context, index) {
-                    final item = historyForSelectedDate[index];
+          : Column(
+        children: [
+          buildSleepProtectionWarning(context), // 全頁一次
 
-                    final recommendedTimingStr =
-                        item['recommended_caffeine_intake_timing'] ?? '';
-                    final recommendedAmount =
-                        item['recommended_caffeine_amount'] ?? '';
-                    final displayStatus =
-                        item['display_status'] ?? 'active';
-                    final fetchedAt = item['fetched_at'];
+          Expanded(
+            child: hasHistory
+                ? ListView.builder(
+                    padding: const EdgeInsets.all(16.0),
+                    itemCount: historyForSelectedDate.length,
+                    itemBuilder: (context, index) {
+                      final item = historyForSelectedDate[index];
 
-                    final localDateTime =
-                        _parseAndLocalize(recommendedTimingStr);
+                      final recommendedTimingStr =
+                          item['recommended_caffeine_intake_timing'] ?? '';
+                      final recommendedAmount =
+                          item['recommended_caffeine_amount'] ?? '';
+                      final displayStatus = item['display_status'] ?? 'active';
+                      final fetchedAt = item['fetched_at'];
 
-                    final formattedTime = localDateTime != null
-                        ? DateFormat('MM/dd HH:mm').format(localDateTime)
-                        : loc.formatError;
+                      final localDateTime =
+                          _parseRecommendationTime(recommendedTimingStr);
+                      final fetchedAtLocal =
+                          _parseRecommendationTime(fetchedAt?.toString());
 
-                    return Card(
-                      color: _cardColor,
-                      elevation: 4.0,
-                      margin: const EdgeInsets.only(bottom: 16.0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16.0),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    loc.caffeineSuggestionIndex(index + 1),
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: _primaryColor,
+                      final formattedTime = localDateTime != null
+                          ? DateFormat('MM/dd HH:mm').format(localDateTime)
+                          : loc.formatError;
+
+                      return Card(
+                        color: _cardColor,
+                        elevation: 4.0,
+                        margin: const EdgeInsets.only(bottom: 16.0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16.0),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      loc.caffeineSuggestionIndex(index + 1),
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: _primaryColor,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: displayStatus == 'active'
-                                        ? Colors.green.withOpacity(0.15)
-                                        : Colors.orange.withOpacity(0.15),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    displayStatus == 'active'
-                                        ? loc.activeStatus
-                                        : loc.expiredStatus,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
                                       color: displayStatus == 'active'
-                                          ? Colors.green
-                                          : Colors.orange,
+                                          ? Colors.green.withOpacity(0.15)
+                                          : Colors.orange.withOpacity(0.15),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      displayStatus == 'active'
+                                          ? loc.activeStatus
+                                          : loc.expiredStatus,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: displayStatus == 'active'
+                                            ? Colors.green
+                                            : Colors.orange,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            _buildDataRow(
-                              icon: Icons.access_time_filled,
-                              title: loc.recommendedTime,
-                              content: formattedTime,
-                            ),
-                            const SizedBox(height: 12),
-                            _buildDataRow(
-                              icon: Icons.local_cafe,
-                              title: loc.recommendedAmount,
-                              content:
-                                  loc.amountMg(recommendedAmount.toString()),
-                            ),
-                            if (fetchedAt != null) ...[
+                                ],
+                              ),
                               const SizedBox(height: 12),
                               _buildDataRow(
-                                icon: Icons.update,
-                                title: loc.updatedTime,
-                                content: DateFormat('MM/dd HH:mm')
-                                    .format(DateTime.parse(fetchedAt).toLocal()),
+                                icon: Icons.access_time_filled,
+                                title: loc.recommendedTime,
+                                content: formattedTime,
                               ),
+                              const SizedBox(height: 12),
+                              _buildDataRow(
+                                icon: Icons.local_cafe,
+                                title: loc.recommendedAmount,
+                                content:
+                                    loc.amountMg(recommendedAmount.toString()),
+                              ),
+                              if (fetchedAt != null) ...[
+                                const SizedBox(height: 12),
+                                _buildDataRow(
+                                  icon: Icons.update,
+                                  title: loc.updatedTime,
+                                  content: fetchedAtLocal != null
+                                      ? DateFormat('MM/dd HH:mm')
+                                          .format(fetchedAtLocal)
+                                      : loc.formatError,
+                                ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
                 )
               : Center(
                   child: Padding(
@@ -318,22 +375,21 @@ class _CaffeineHistoryPageState extends State<CaffeineHistoryPage> {
                           onPressed: () async {
                             await _clearDataForSelectedDate();
 
-                            if (mounted) {
-                              final result = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      CaffeineRecommendationPage(
-                                    userId: widget.userId,
-                                    selectedDate: widget.selectedDate,
-                                  ),
-                                ),
-                              );
+                            if (!mounted) return;
 
-                              if (result == true || result == null) {
-                                await _loadData();
-                                if (mounted) setState(() {});
-                              }
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CaffeineRecommendationPage(
+                                  userId: widget.userId,
+                                  selectedDate: widget.selectedDate,
+                                ),
+                              ),
+                            );
+
+                            if (result == true || result == null) {
+                              await _loadData();
+                              if (mounted) setState(() {});
                             }
                           },
                           icon: const Icon(Icons.auto_graph),
@@ -347,6 +403,9 @@ class _CaffeineHistoryPageState extends State<CaffeineHistoryPage> {
                     ),
                   ),
                 ),
+          )
+        ]
+      )
     );
   }
 }
