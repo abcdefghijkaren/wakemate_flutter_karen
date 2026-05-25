@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:my_app/gen_l10n/app_localizations.dart';
+// import 'LanguageSettingPage.dart';
 
 class AlertnessTestPage extends StatefulWidget {
   final String userId;
@@ -426,6 +427,20 @@ class _AlertnessTestPageState extends State<AlertnessTestPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(color: _primaryColor),
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.language),
+        //     tooltip: 'Language',
+        //     onPressed: () {
+        //       Navigator.push(
+        //         context,
+        //         MaterialPageRoute(
+        //           builder: (_) => const LanguageSettingPage(),
+        //         ),
+        //       );
+        //     },
+        //   ),
+        // ],
       ),
       body: Center(
         child: SingleChildScrollView(

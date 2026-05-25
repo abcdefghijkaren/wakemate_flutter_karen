@@ -19,6 +19,9 @@ void main() async {
   await NotificationService.instance.initialize();
   await NotificationService.instance.requestPermission();
   await NotificationService.instance.debugNotificationStatus();
+  await NotificationService.instance.showNowTestNotification();
+await NotificationService.instance.scheduleQuickCaffeineTest(secondsLater: 30);
+await NotificationService.instance.scheduleQuickAlertnessTest(secondsLater: 45);
 
   //執行 runApp，並在最頂層提供LocaleProvider
   runApp(
