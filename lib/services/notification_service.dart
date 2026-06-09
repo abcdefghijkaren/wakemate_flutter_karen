@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -24,6 +25,11 @@ class NotificationService {
   bool _initialized = false;
 
   Future<void> initialize() async {
+    if (_initialized) {
+      debugPrint('[NOTI] already initialized');
+      return;
+    }
+
     debugPrint('[NOTI] initialize() called');
 
     tz.initializeTimeZones();
@@ -81,6 +87,8 @@ class NotificationService {
   }
 
   Future<void> requestPermission() async {
+    _checkInitialized();
+
     debugPrint('[NOTI] requestPermission() called');
 
     final androidImplementation =
@@ -104,10 +112,14 @@ class NotificationService {
     debugPrint('[NOTI] canScheduleExactNotifications = $canScheduleExact');
 
     if (canScheduleExact == false) {
-      final bool? exactGranted =
-          await androidImplementation?.requestExactAlarmsPermission();
+      try {
+        final bool? exactGranted =
+            await androidImplementation?.requestExactAlarmsPermission();
 
-      debugPrint('[NOTI] requestExactAlarmsPermission result = $exactGranted');
+        debugPrint('[NOTI] requestExactAlarmsPermission result = $exactGranted');
+      } catch (e) {
+        debugPrint('[NOTI] requestExactAlarmsPermission failed: $e');
+      }
     }
 
     final bool? canScheduleExactAfterRequest =
@@ -126,6 +138,7 @@ class NotificationService {
         channelDescription: _channelDescription,
         importance: Importance.max,
         priority: Priority.high,
+        playSound: true,
       ),
       iOS: DarwinNotificationDetails(),
     );
@@ -139,9 +152,22 @@ class NotificationService {
         channelDescription: _testChannelDescription,
         importance: Importance.max,
         priority: Priority.high,
+        playSound: true,
       ),
       iOS: DarwinNotificationDetails(),
     );
+  }
+
+  Future<bool> _canScheduleExactNotifications() async {
+    final androidImplementation =
+        flutterLocalNotificationsPlugin
+            .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin>();
+
+    final bool? canScheduleExact =
+        await androidImplementation?.canScheduleExactNotifications();
+
+    return canScheduleExact ?? true;
   }
 
   Future<void> showRecommendationReadyNotification({
@@ -172,35 +198,15 @@ class NotificationService {
     required String body,
     String? payload,
   }) async {
-    _checkInitialized();
-
-    final tzTime = tz.TZDateTime.from(scheduledTime, _appLocation);
-    final nowTz = tz.TZDateTime.now(_appLocation);
-
-    debugPrint('[NOTI] scheduleCaffeineReminder()');
-    debugPrint('[NOTI] id = $id');
-    debugPrint('[NOTI] scheduledTime = $scheduledTime');
-    debugPrint('[NOTI] tzTime = $tzTime');
-    debugPrint('[NOTI] nowTz = $nowTz');
-
-    if (!tzTime.isAfter(nowTz)) {
-      debugPrint('[NOTI] caffeine reminder skipped: time is past or now');
-      return;
-    }
-
-    await flutterLocalNotificationsPlugin.zonedSchedule(
-      id,
-      title,
-      body,
-      tzTime,
-      _caffeineNotificationDetails(),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
+    await _scheduleNotificationSafely(
+      id: id,
+      scheduledTime: scheduledTime,
+      title: title,
+      body: body,
+      details: _caffeineNotificationDetails(),
       payload: payload ?? 'caffeine_reminder',
+      debugName: 'caffeine reminder',
     );
-
-    debugPrint('[NOTI] caffeine reminder scheduled, id=$id');
   }
 
   Future<void> scheduleTestReminder({
@@ -210,49 +216,78 @@ class NotificationService {
     required String body,
     String? payload,
   }) async {
+    await _scheduleNotificationSafely(
+      id: id,
+      scheduledTime: scheduledTime,
+      title: title,
+      body: body,
+      details: _testNotificationDetails(),
+      payload: payload ?? 'alertness_test_reminder',
+      debugName: 'test reminder',
+    );
+  }
+
+  Future<void> _scheduleNotificationSafely({
+    required int id,
+    required DateTime scheduledTime,
+    required String title,
+    required String body,
+    required NotificationDetails details,
+    required String payload,
+    required String debugName,
+  }) async {
     _checkInitialized();
 
     final tzTime = tz.TZDateTime.from(scheduledTime, _appLocation);
     final nowTz = tz.TZDateTime.now(_appLocation);
 
-    debugPrint('[NOTI] scheduleTestReminder()');
+    debugPrint('[NOTI] schedule $debugName');
     debugPrint('[NOTI] id = $id');
     debugPrint('[NOTI] scheduledTime = $scheduledTime');
     debugPrint('[NOTI] tzTime = $tzTime');
     debugPrint('[NOTI] nowTz = $nowTz');
 
     if (!tzTime.isAfter(nowTz)) {
-      debugPrint('[NOTI] test reminder skipped: time is past or now');
+      debugPrint('[NOTI] $debugName skipped: time is past or now');
       return;
     }
 
-    await flutterLocalNotificationsPlugin.zonedSchedule(
-      id,
-      title,
-      body,
-      tzTime,
-      _testNotificationDetails(),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      payload: payload ?? 'alertness_test_reminder',
-    );
+    final bool canUseExact = await _canScheduleExactNotifications();
 
-    debugPrint('[NOTI] test reminder scheduled, id=$id');
+    final AndroidScheduleMode scheduleMode = canUseExact
+        ? AndroidScheduleMode.exactAllowWhileIdle
+        : AndroidScheduleMode.inexactAllowWhileIdle;
+
+    debugPrint('[NOTI] scheduleMode = $scheduleMode');
+
+    try {
+      await flutterLocalNotificationsPlugin.zonedSchedule(
+        id,
+        title,
+        body,
+        tzTime,
+        details,
+        androidScheduleMode: scheduleMode,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        payload: payload,
+      );
+
+      debugPrint('[NOTI] $debugName scheduled successfully, id=$id');
+    } on PlatformException catch (e) {
+      debugPrint('[NOTI] $debugName schedule failed: ${e.message}');
+    } catch (e) {
+      debugPrint('[NOTI] $debugName schedule failed: $e');
+    }
   }
 
-  /// 核心功能：
-  /// 計算完成後，一次安排：
-  /// 1. 立即通知：推薦已產生
-  /// 2. 推薦攝取時間通知
-  /// 3. 攝取前清醒度測驗
-  /// 4. 攝取後清醒度測驗
   Future<void> scheduleFullCaffeineNotificationSet({
     required int baseId,
     required DateTime recommendationTime,
     required int caffeineAmount,
     int preTestMinutesBefore = 10,
     int postTestMinutesAfter = 60,
+    bool showReadyNotification = true,
   }) async {
     _checkInitialized();
 
@@ -260,8 +295,6 @@ class NotificationService {
     debugPrint('[NOTI] baseId = $baseId');
     debugPrint('[NOTI] recommendationTime = $recommendationTime');
     debugPrint('[NOTI] caffeineAmount = $caffeineAmount');
-    debugPrint('[NOTI] preTestMinutesBefore = $preTestMinutesBefore');
-    debugPrint('[NOTI] postTestMinutesAfter = $postTestMinutesAfter');
 
     final readyId = baseId;
     final caffeineId = baseId + 1;
@@ -275,11 +308,13 @@ class NotificationService {
 
     final timeText = _formatDateTime(recommendationTime);
 
-    await showRecommendationReadyNotification(
-      id: readyId,
-      title: 'WakeMate 咖啡因建議已產生',
-      body: '建議於 $timeText 攝取 $caffeineAmount mg 咖啡因。',
-    );
+    if (showReadyNotification) {
+      await showRecommendationReadyNotification(
+        id: readyId,
+        title: 'WakeMate 咖啡因建議已產生',
+        body: '建議於 $timeText 攝取 $caffeineAmount mg 咖啡因。',
+      );
+    }
 
     await scheduleCaffeineReminder(
       id: caffeineId,
@@ -316,9 +351,6 @@ class NotificationService {
     _checkInitialized();
 
     debugPrint('[NOTI] showImmediateTestReminder() called');
-    debugPrint('[NOTI] id = $id');
-    debugPrint('[NOTI] title = $title');
-    debugPrint('[NOTI] body = $body');
 
     await flutterLocalNotificationsPlugin.show(
       id,

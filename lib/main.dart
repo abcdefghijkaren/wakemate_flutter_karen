@@ -1,11 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// 導入 Provider 套件
 import 'package:provider/provider.dart';
 import 'package:my_app/providers/locale_provider.dart';
-//導入 Flutter 自動產生的 l10n 檔案
 import 'package:my_app/gen_l10n/app_localizations.dart';
 
 import '/screens/LoginPage.dart';
@@ -13,56 +12,83 @@ import '/screens/home_page.dart';
 
 import 'package:my_app/services/notification_service.dart';
 
+// Firebase
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:http/http.dart' as http;
+
+// ---------------------------
+// FCM 設定
+// ---------------------------
+Future<void> setupFCM(String userId) async {
+  try {
+    final messaging = FirebaseMessaging.instance;
+
+    await messaging.requestPermission();
+
+    final token = await messaging.getToken();
+
+    print('FCM Token: $token');
+
+    if (token != null) {
+      final response = await http.post(
+        Uri.parse('https://wakemate-api-4-0.onrender.com/users/fcm-token'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'user_id': int.parse(userId),
+          'fcm_token': token,
+        }),
+      );
+
+      print('FCM save response: ${response.statusCode}');
+      print('FCM save body: ${response.body}');
+    }
+  } catch (e) {
+    print('FCM setup error: $e');
+  }
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp();
 
   await NotificationService.instance.initialize();
   await NotificationService.instance.requestPermission();
   await NotificationService.instance.debugNotificationStatus();
-  await NotificationService.instance.showNowTestNotification();
-await NotificationService.instance.scheduleQuickCaffeineTest(secondsLater: 30);
-await NotificationService.instance.scheduleQuickAlertnessTest(secondsLater: 45);
 
-  //執行 runApp，並在最頂層提供LocaleProvider
   runApp(
     ChangeNotifierProvider(
-      create: (context) => LocaleProvider(), // 建立 "大腦"
+      create: (context) => LocaleProvider(),
       child: const MyApp(),
     ),
   );
 }
 
+// ---------------------------
+// App 主體
+// ---------------------------
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    //使用Consumer監聽Provider的變化
     return Consumer<LocaleProvider>(
       builder: (context, provider, child) {
-        //provider 改變時，MaterialApp 會自動重建
         return MaterialApp(
           title: 'WakeMate',
           theme: ThemeData(
             primaryColor: const Color(0xFF1F3D5B),
             colorScheme: ColorScheme.fromSwatch(
               primarySwatch: Colors.blue,
-            ).copyWith(secondary: const Color(0xFF5E91B3)),
+            ).copyWith(
+              secondary: const Color(0xFF5E91B3),
+            ),
             visualDensity: VisualDensity.adaptivePlatformDensity,
           ),
-
-          // --- 關鍵的語系設定 ---
-
-          //locale 來自 Provider，不再是寫死的 'zh'
           locale: provider.locale,
-
-          //使用 AppLocalizations 提供的 delegates 和 locales
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-
-          // --- 設定結束 ---
-
-          // 登入檢查
           home: const AuthWrapper(),
         );
       },
@@ -82,6 +108,7 @@ class AuthWrapper extends StatefulWidget {
 
 class _AuthWrapperState extends State<AuthWrapper> {
   Future<Map<String, String?>>? _initialization;
+  bool _fcmSetupDone = false;
 
   @override
   void initState() {
@@ -90,7 +117,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
   }
 
   Future<Map<String, String?>> _checkLoginStatus() async {
-    // (您的 _checkLoginStatus 邏輯保持不變)
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getString('userId');
     final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
@@ -108,7 +134,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    // (您的 FutureBuilder 邏輯保持不變)
     return FutureBuilder<Map<String, String?>>(
       future: _initialization,
       builder: (context, snapshot) {
@@ -123,7 +148,17 @@ class _AuthWrapperState extends State<AuthWrapper> {
         if (userId != null && userId.isNotEmpty) {
           final userName = snapshot.data?['userName'] ?? "";
           final userEmail = snapshot.data?['userEmail'] ?? "";
-          return HomePage(userId: userId, userName: userName, email: userEmail);
+
+          if (!_fcmSetupDone) {
+            _fcmSetupDone = true;
+            setupFCM(userId);
+          }
+
+          return HomePage(
+            userId: userId,
+            userName: userName,
+            email: userEmail,
+          );
         } else {
           return const LoginPage();
         }
