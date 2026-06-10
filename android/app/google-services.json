@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "825257513560",
+    "project_id": "wakemate-6fc61",
+    "storage_bucket": "wakemate-6fc61.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:825257513560:android:84aa362dc7913132dd702d",
+        "android_client_info": {
+          "package_name": "com.example.my_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOYd9-8XD8uNwF54gBhxZsYz-1MFIAzlE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
