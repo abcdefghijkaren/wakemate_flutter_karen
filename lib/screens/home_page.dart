@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-//import 'dart:convert';
 import 'custom_drawer.dart';
 import 'CaffeineRecommendationPage.dart';
 import 'CaffeineHistory.dart';
@@ -11,6 +9,8 @@ import 'SleepTimeLogPage.dart';
 import 'CaffeineLogPage.dart';
 import 'UserInputHistoryPage.dart';
 import 'package:my_app/gen_l10n/app_localizations.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class HomePage extends StatefulWidget {
   final String userId;
@@ -20,8 +20,8 @@ class HomePage extends StatefulWidget {
   const HomePage({
     super.key,
     required this.userId,
-    this.userName = "",
-    this.email = "",
+    required this.userName,
+    required this.email,
   });
 
   @override
@@ -48,12 +48,73 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _loadDailyStats() async {
-    final prefs = await SharedPreferences.getInstance();
-    final dateKey = DateFormat('yyyy-MM-dd').format(_selectedDate);
+    final selectedDateKey = DateFormat('yyyy-MM-dd').format(_selectedDate.toLocal());
 
-    setState(() {
-      _totalCaffeine = prefs.getDouble('caffeine_$dateKey') ?? 0;
-    });
+    print("======== LOAD DAILY STATS ========");
+    print("selectedDateKey = $selectedDateKey");
+
+    try {
+      final url = Uri.parse(
+        'https://wakemate-api-4-0.onrender.com/users_intake/?user_id=${widget.userId}',
+      );
+
+      final response = await http.get(url);
+
+      print("statusCode = ${response.statusCode}");
+      print("response.body = ${response.body}");
+
+
+      if (response.statusCode == 200) {
+        final List<dynamic> records = jsonDecode(response.body);
+
+        double total = 0;
+
+        for (final record in records) {
+          final timestamp = record['taking_timestamp'];
+          final caffeineAmount = record['caffeine_amount'];
+
+          print("record = $record");
+
+          if (timestamp == null || caffeineAmount == null) continue;
+
+          final recordDateKey = DateFormat('yyyy-MM-dd').format(
+            DateTime.parse(timestamp),
+          );
+
+          print("recordDateKey = $recordDateKey");
+          print("caffeineAmount = $caffeineAmount");
+
+
+          if (recordDateKey == selectedDateKey) {
+            total += (caffeineAmount as num).toDouble();
+
+            print("MATCH -> total = $total");
+          }
+        }
+
+        if (!mounted) return;
+
+        print("FINAL TOTAL = $total");
+
+        setState(() {
+          _totalCaffeine = total;
+        });
+      } else {
+        if (!mounted) return;
+
+        setState(() {
+          _totalCaffeine = 0;
+        });
+      }
+    } catch (e) {
+      print('Failed to load daily caffeine total: $e');
+
+      if (!mounted) return;
+
+      setState(() {
+        _totalCaffeine = 0;
+      });
+    }
   }
 
   Future<void> _navigateToRecommendationHistoryPage() async {

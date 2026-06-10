@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -12,46 +10,8 @@ import '/screens/home_page.dart';
 
 import 'package:my_app/services/notification_service.dart';
 
-// Firebase
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:http/http.dart' as http;
-
-// ---------------------------
-// FCM 設定
-// ---------------------------
-Future<void> setupFCM(String userId) async {
-  try {
-    final messaging = FirebaseMessaging.instance;
-
-    await messaging.requestPermission();
-
-    final token = await messaging.getToken();
-
-    print('FCM Token: $token');
-
-    if (token != null) {
-      final response = await http.post(
-        Uri.parse('https://wakemate-api-4-0.onrender.com/users/fcm-token'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'user_id': int.parse(userId),
-          'fcm_token': token,
-        }),
-      );
-
-      print('FCM save response: ${response.statusCode}');
-      print('FCM save body: ${response.body}');
-    }
-  } catch (e) {
-    print('FCM setup error: $e');
-  }
-}
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  await Firebase.initializeApp();
 
   await NotificationService.instance.initialize();
   await NotificationService.instance.requestPermission();
@@ -108,7 +68,6 @@ class AuthWrapper extends StatefulWidget {
 
 class _AuthWrapperState extends State<AuthWrapper> {
   Future<Map<String, String?>>? _initialization;
-  bool _fcmSetupDone = false;
 
   @override
   void initState() {
@@ -127,9 +86,9 @@ class _AuthWrapperState extends State<AuthWrapper> {
         'userName': prefs.getString('userName'),
         'userEmail': prefs.getString('userEmail'),
       };
-    } else {
-      return {'userId': null};
     }
+
+    return {'userId': null};
   }
 
   @override
@@ -149,19 +108,14 @@ class _AuthWrapperState extends State<AuthWrapper> {
           final userName = snapshot.data?['userName'] ?? "";
           final userEmail = snapshot.data?['userEmail'] ?? "";
 
-          if (!_fcmSetupDone) {
-            _fcmSetupDone = true;
-            setupFCM(userId);
-          }
-
           return HomePage(
             userId: userId,
             userName: userName,
             email: userEmail,
           );
-        } else {
-          return const LoginPage();
         }
+
+        return const LoginPage();
       },
     );
   }

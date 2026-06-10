@@ -36,10 +36,11 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  Future<void> _saveLoginInfo(String userId, String email) async {
+  Future<void> _saveLoginInfo(String userId, String email, String userName) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('userId', userId);
     await prefs.setString('userEmail', email);
+    await prefs.setString('userName', userName);
     await prefs.setBool('isLoggedIn', true);
   }
 
@@ -84,7 +85,7 @@ class _LoginPageState extends State<LoginPage> {
             data['name']?.toString() ?? l10n.userDefaultName;
 
         if (uuidFromServer != null && uuidFromServer.isNotEmpty) {
-          await _saveLoginInfo(uuidFromServer, email);
+          await _saveLoginInfo(uuidFromServer, email, nameFromServer);
 
           final now = DateFormat('HH:mm').format(DateTime.now());
           final snackBar = SnackBar(
