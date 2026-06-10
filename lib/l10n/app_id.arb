@@ -1,4 +1,10 @@
 {
+  "languageSetting": "Bahasa",
+  "languageTraditionalChinese": "Mandarin Tradisional",
+  "languageEnglish": "English",
+  "languageIndonesian": "Bahasa Indonesia",
+
+
   "@@locale": "id",
   "languageSettingsTitle": "Pengaturan Bahasa",
   "selectYourLanguage": "Pilih Bahasa Anda",
@@ -9,10 +15,411 @@
   "sleepDurationToday": "Durasi Tidur Hari Ini",
   "unitMg": " mg",
   "unitHours": " jam",
-  "wakeTime": "Waktu Bangun",
-  "sleepTime": "Waktu Tidur",
+  "wakeTime": "Periode Target Tetap Terjaga",
+  "sleepTime": "Periode Tidur Aktual",
   "caffeineLog": "Catatan Kafein",
   "inputHistory": "Riwayat Input",
   "calculateRecommendation": "Hitung Rekomendasi",
-  "recommendationHistory": "Riwayat Rekomendasi"
+  "recommendationHistory": "Riwayat Rekomendasi",
+
+  "alertnessTestTitle": "Tes Kewaspadaan",
+  "tapToStart": "Ketika warna berubah, segera ketuk layar.",
+  "pleaseWait": "Silakan tunggu...",
+  "pleaseTap": "Ketuk sekarang!",
+  "tapTooSoon": "❌ Terlalu cepat! Coba lagi",
+  "testResult": "Hasil Tes",
+  "reactionTimesLabel": "Waktu reaksi:",
+  "reactionTimeTrial": "Percobaan {trial}: {milliseconds} ms",
+  "@reactionTimeTrial": {
+    "placeholders": {
+      "trial": {
+        "type": "int"
+      },
+      "milliseconds": {
+        "type": "int"
+      }
+    }
+  },
+  "averageReactionTime": "Rata-rata waktu reaksi: {avg} ms",
+  "@averageReactionTime": {
+    "placeholders": {
+      "avg": {
+        "type": "String"
+      }
+    }
+  },
+  "selectKssLevel": "Pilih tingkat kewaspadaan Anda:",
+  "chooseKssScore": "Pilih tingkat kewaspadaan Anda",
+  "testAgain": "Tes Lagi",
+  "finishAndClose": "Selesai dan Tutup",
+  "dataSentSuccess": "Data berhasil dikirim!",
+  "submitFailed": "Gagal mengirim. Kode status: {statusCode}",
+  "@submitFailed": {
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "networkErrorCannotSubmit": "Kesalahan jaringan, tidak dapat mengirim data",
+  "startTest": "Mulai Tes",
+  "kssLevel1": "Sangat waspada",
+  "kssLevel2": "Sangat terjaga",
+  "kssLevel3": "Terjaga",
+  "kssLevel4": "Cukup terjaga",
+  "kssLevel5": "Tidak terjaga maupun mengantuk",
+  "kssLevel6": "Mulai muncul tanda-tanda kantuk",
+  "kssLevel7": "Mengantuk, tetapi tidak perlu usaha untuk tetap terjaga",
+  "kssLevel8": "Mengantuk, perlu sedikit usaha untuk tetap terjaga",
+  "kssLevel9": "Sangat mengantuk, perlu usaha besar untuk tetap terjaga, hampir tertidur",
+
+  "personalBodyData": "Data Tubuh Pribadi",
+  "logout": "Keluar",
+
+  "userDefaultName": "Pengguna",
+  "enterEmailAndPassword": "Silakan masukkan email dan kata sandi Anda",
+  "loginSuccess": "Berhasil masuk!",
+  "loginSuccessButNoUserId": "Berhasil masuk, tetapi gagal mendapatkan ID pengguna",
+  "loginFailed": "Gagal masuk: email atau kata sandi salah",
+  "unknownServerError": "Terjadi kesalahan server yang tidak diketahui",
+  "loginFailedWithReason": "Gagal masuk: {errorMsg}",
+  "@loginFailedWithReason": {
+    "placeholders": {
+      "errorMsg": {
+        "type": "String"
+      }
+    }
+  },
+  "loginFailedInvalidResponse": "Gagal masuk: respons server tidak valid",
+  "networkErrorCannotConnectServer": "Kesalahan: tidak dapat terhubung ke server",
+  "welcomeBack": "Selamat datang kembali",
+  "loginTitle": "Masuk",
+  "loginDescription": "Silakan masukkan email dan kata sandi Anda",
+  "email": "Email",
+  "password": "Kata Sandi",
+  "login": "Masuk",
+  "noAccount": "Belum punya akun?",
+  "registerNow": "Daftar",
+
+  "registerAccount": "Daftar Akun",
+  "createAccount": "Buat Akun",
+  "register": "Daftar",
+  "registerSuccess": "Pendaftaran berhasil! Silakan masuk",
+  "emailExists": "Email ini sudah terdaftar",
+  "registerFailed": "Pendaftaran gagal",
+  "name": "Nama",
+  "fillAllFields": "Silakan isi semua kolom",
+  "invalidEmail": "Format email tidak valid",
+
+  "personalBodyData": "Data Tubuh Pribadi",
+  "gender": "Jenis Kelamin",
+  "male": "Laki-laki",
+  "female": "Perempuan",
+  "age": "Usia",
+  "enterAge": "Silakan masukkan usia Anda",
+  "ageRequired": "Usia wajib diisi",
+  "invalidAge": "Silakan masukkan usia yang valid",
+  "heightCm": "Tinggi (cm)",
+  "enterHeight": "Silakan masukkan tinggi Anda",
+  "heightRequired": "Tinggi wajib diisi",
+  "invalidHeight": "Silakan masukkan tinggi yang valid",
+  "weightKg": "Berat (kg)",
+  "enterWeight": "Silakan masukkan berat Anda",
+  "weightRequired": "Berat wajib diisi",
+  "invalidWeight": "Silakan masukkan berat yang valid",
+  "bmi": "BMI",
+  "autoCalculateBMI": "BMI Anda akan dihitung secara otomatis",
+  "saveSettings": "Simpan Pengaturan",
+  "saving": "Menyimpan...",
+  "saveSuccess": "Pengaturan berhasil disimpan!",
+  "saveFailed": "Gagal menyimpan",
+  "loadFailed": "Gagal memuat data",
+  "completeRequiredFieldsAndGender": "Silakan lengkapi semua kolom wajib dan pilih jenis kelamin",
+  "errorPrefix": "Kesalahan",
+
+  "addCaffeineLog": "Tambah Catatan Kafein",
+  "caffeineDescription": "Catat konsumsi kafein untuk rekomendasi yang dipersonalisasi",
+  "caffeineAmount": "Jumlah Kafein (mg)",
+  "caffeineExample": "contoh: 150",
+  "drinkName": "Nama Minuman",
+  "drinkExample": "contoh: Latte",
+  "takingTime": "Waktu Konsumsi",
+  "saveCaffeineLog": "Simpan Catatan Kafein",
+  "fillAllFields": "Harap isi semua kolom",
+  "invalidCaffeine": "Jumlah kafein harus angka positif",
+  "saveSuccess": "Berhasil disimpan",
+  "saveFailed": "Gagal menyimpan",
+  "errorOccurred": "Terjadi kesalahan: {error}",
+  "defaultDrink": "Kopi",
+
+
+  "addActualSleepTime": "Tambahkan Waktu Tidur Sebenarnya",
+  "actualSleepTimeDescription": "Silakan masukkan waktu sebenarnya saat Anda mulai tidur dan bangun untuk mencatat seluruh siklus tidur Anda.",
+  "sleepStartTimePick": "Waktu mulai tidur (ketuk untuk memilih)",
+  "sleepEndTimePick": "Waktu selesai tidur (ketuk untuk memilih)",
+  "sleepStartExample": "Contoh: 2025-11-05 23:00",
+  "sleepEndExample": "Contoh: 2025-11-06 07:00",
+  "saveSleepCycle": "Simpan Siklus Tidur",
+  "sleepPleaseSelectStartAndEndTime": "Silakan pilih waktu mulai dan selesai tidur.",
+  "sleepEndCannotBeEarlierThanStart": "Waktu selesai tidak boleh lebih awal dari waktu mulai. Silakan periksa tanggal dan waktunya.",
+  "sleepTooLongOver48Hours": "Durasi tidur terlalu lama (lebih dari 48 jam). Mohon periksa kembali.",
+  "sleepInvalidTimeFormat": "Format waktu tidak valid. Silakan pilih lagi.",
+  "sleepSaveFailedWithReason": "Gagal menyimpan catatan tidur: {statusCode}\nRespons: {responseBody}",
+  "@sleepSaveFailedWithReason": {
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      },
+      "responseBody": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepSaveSuccessWithDuration": "Catatan tidur berhasil disimpan!\n😴 Total durasi: {hours} jam {minutes} menit",
+  "@sleepSaveSuccessWithDuration": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepDurationCalculationFailed": "Format data salah, durasi tidak dapat dihitung atau disimpan.",
+  "noResponseContent": "Tidak ada isi respons",
+  "errorOccurred": "Terjadi kesalahan: {error}",
+  "@errorOccurred": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+
+
+  "wakePageTitle": "Atur Periode Target Tetap Terjaga",
+  "wakeDescription": "Masukkan periode waktu Anda ingin tetap terjaga.",
+  "wakeFillAllTimeSlots": "Harap isi semua waktu.",
+  "wakeEndBeforeStart": "Waktu selesai tidak boleh lebih awal.",
+  "wakeInvalidTimeFormat": "Format waktu tidak valid",
+  "wakeSingleSlotFailed": "Slot {index} gagal (status: {status})",
+  "wakeSaveAllSuccess": "Berhasil menyimpan {count} slot",
+  "wakePartialSuccess": "{success} berhasil, {fail} gagal",
+  "wakeAllFailed": "Semua gagal",
+  "wakeSlotTitle": "Periode Target Tetap Terjaga #{index}",
+  "startTime": "Waktu Mulai",
+  "endTime": "Waktu Selesai",
+  "addTimeSlot": "Tambah Slot",
+  "saveWakeTime": "Simpan Periode Target Tetap Terjaga",
+  "timeExampleStart": "contoh: 05:00",
+  "timeExampleEnd": "contoh: 06:00",
+
+
+
+  "userInputHistoryTitle": "Riwayat Input {date}",
+  "@userInputHistoryTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "loadingUserInputData": "Sedang memuat data input hari ini...",
+  "userInputLoadError": "Terjadi kesalahan saat memuat riwayat input:\n{error}",
+  "@userInputLoadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "returnHomeAndAddRecord": "Silakan kembali ke halaman utama, tekan tombol \"Tambah Catatan\", lalu pilih periode yang sesuai untuk dicatat.",
+  "noUserInputOnThisDay": "Tidak ada catatan input pada hari ini.",
+  "yourInputHistory": "Riwayat Input Anda",
+  "actualSleepCycle": "Siklus Tidur Aktual",
+  "noActualSleepRecord": "Tidak ada catatan tidur aktual",
+  "targetWakePeriod": "Periode Target Tetap Terjaga",
+  "noTargetWakePeriodRecord": "Belum ada catatan periode target tetap terjaga",
+  "caffeineIntake": "Asupan Kafein",
+  "noCaffeineIntakeRecord": "Tidak ada catatan asupan kafein",
+  "startTime": "Waktu Mulai",
+  "endTime": "Waktu Selesai",
+  "totalDuration": "Total Durasi",
+  "durationHoursMinutes": "{hours} jam {minutes} menit",
+  "@durationHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "intakeTime": "Waktu Konsumsi",
+  "contentLabel": "Isi",
+  "unknownDrink": "Minuman Tidak Diketahui",
+  "notAvailable": "N/A",
+  "drinkWithAmount": "{name} ({amount} mg)",
+  "@drinkWithAmount": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+
+
+
+  "caffeineHistoryTitle": "Rekomendasi {date}",
+  "caffeineSuggestionIndex": "Rekomendasi #{index}",
+  "activeStatus": "Aktif",
+  "expiredStatus": "Kedaluwarsa",
+  "recommendedTime": "Waktu Rekomendasi",
+  "recommendedAmount": "Jumlah Rekomendasi",
+  "updatedTime": "Waktu Update",
+  "noCaffeineHistory": "Tidak ada rekomendasi untuk {date}",
+  "clickToGenerate": "Tekan tombol di bawah untuk menghasilkan rekomendasi",
+  "recalculate": "Hitung Ulang",
+  "formatError": "Format salah",
+  "amountMg": "{amount} mg",
+
+
+
+  "caffeineRecommendationPageTitle": "Rekomendasi Kafein",
+
+  "recommendationDataFormatError": "Format rekomendasi tidak valid",
+  "recommendationParseFailed": "Gagal parsing rekomendasi: {error}\nData: {raw}",
+  "@recommendationParseFailed": {
+    "placeholders": {
+      "error": {},
+      "raw": {}
+    }
+  },
+
+  "recommendationUpdatedButNotificationFailed": "Beberapa notifikasi tidak dibuat karena waktu yang direkomendasikan sudah lewat. Rekomendasi tetap berlaku—silakan ikuti petunjuk di layar.",
+
+  "noNewRecommendationData": "Tidak ada rekomendasi baru",
+  "noNewRecommendationDataMessage": "Tidak ada rekomendasi baru.",
+
+  "calculationFailedWithStatus": "Perhitungan gagal: {status}",
+  "@calculationFailedWithStatus": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+
+  "serverErrorWithPreview": "Kesalahan server (Status: {status})\nPreview: {preview}",
+  "@serverErrorWithPreview": {
+    "placeholders": {
+      "status": {},
+      "preview": {}
+    }
+  },
+
+  "timeoutCheckNetwork": "Permintaan timeout, periksa koneksi Anda",
+  "connectionTimedOut": "Koneksi timeout, silakan coba lagi",
+
+  "networkConnectionError": "Kesalahan jaringan",
+  "cannotConnectToServer": "Tidak dapat terhubung ke server",
+
+  "unknownError": "Kesalahan tidak diketahui: {error}",
+  "@unknownError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+
+  "wakemateRecommendationGenerated": "Rekomendasi WAKEMATE siap",
+  "recommendationGeneratedBody": "Konsumsi {amount} mg kafein pada {time}",
+  "@recommendationGeneratedBody": {
+    "placeholders": {
+      "time": {},
+      "amount": {}
+    }
+  },
+
+  "wakemateCaffeineReminder": "Pengingat WAKEMATE",
+  "caffeineReminderBody": "Konsumsi {amount} mg kafein pada {time}",
+  "@caffeineReminderBody": {
+    "placeholders": {
+      "time": {},
+      "amount": {}
+    }
+  },
+
+  "analyzingCaffeineData": "Sedang menganalisis data kafein...",
+  "thisMayTakeSomeTimePleaseWait": "Ini mungkin membutuhkan waktu, mohon tunggu",
+
+  "oopsCalculationFailed": "Oops! Perhitungan gagal",
+  "retry": "Coba lagi",
+  "backToHomePage": "Kembali",
+
+
+  "edit": "Edit",
+  "delete": "Hapus",
+  "cancel": "Batal",
+  "save": "Simpan",
+
+  "deleteRecordTitle": "Hapus catatan",
+  "deleteRecordMessage": "Catatan ini akan dihapus. Apakah Anda ingin melanjutkan?",
+
+  "editSleepRecord": "Edit catatan tidur",
+  "editWakePeriod": "Edit Periode Target Tetap Terjaga",
+  "editCaffeineIntake": "Edit asupan kafein",
+
+  "intakeTimeLabel": "Waktu konsumsi",
+  "drinkNameLabel": "Nama minuman",
+  "caffeineAmountLabel": "Jumlah kafein (mg)",
+  "dateTimeHint": "yyyy-MM-dd HH:mm",
+
+  "deletedSuccessfully": "Berhasil dihapus",
+  "updatedSuccessfully": "Berhasil diperbarui",
+  "deleteFailed": "Gagal menghapus",
+  "updateFailed": "Gagal memperbarui",
+
+  "invalidDateTimeFormat": "Format waktu tidak valid. Gunakan yyyy-MM-dd HH:mm",
+  "invalidCaffeineAmount": "Masukkan jumlah kafein yang valid",
+  "emptyDrinkName": "Masukkan nama minuman",
+  "endTimeMustBeLater": "Waktu selesai harus lebih lambat dari waktu mulai",
+
+  "mergedFromRecords": "Digabung dari {count} catatan",
+  "@mergedFromRecords": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "singleRecordCount": "1 catatan",
+  "originalRecord": "Catatan asli",
+
+  "pvtKssBaselineTestTitle": "Silakan lakukan tes kewaspadaan awal",
+  "pvtKssBaselineTestBody": "Anda dijadwalkan mengonsumsi kafein pada {time}. Silakan lakukan satu tes kewaspadaan sebelum mengonsumsi.",
+  "@pvtKssBaselineTestBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+
+  "pvtKssEffectTestTitle": "Silakan lakukan tes setelah konsumsi kafein",
+  "pvtKssEffectTestBody": "Anda sekarang berada dalam periode efek kafein. Silakan lakukan satu tes kewaspadaan untuk mengevaluasi efeknya.",
+  "@pvtKssEffectTestBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+
+  "avoidCaffeineBeforeSleepWarning": "Untuk menjaga kualitas tidur Anda, hindari konsumsi kafein dalam 6 jam sebelum tidur."
+
 }

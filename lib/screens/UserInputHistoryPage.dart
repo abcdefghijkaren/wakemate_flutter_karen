@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert'; // 必須導入 'dart:convert' 才能使用 utf8.decode
+import 'dart:convert';
 import 'dart:async';
 import 'package:intl/intl.dart';
+import 'package:my_app/gen_l10n/app_localizations.dart';
 
-// --- 數據模型 (與 CaffeineHistoryPage 共享) ---
 class UserDayData {
-  final List<dynamic> wakePeriods; // 目標清醒時段
-  final List<dynamic> sleepCycles; // 睡眠時段
-  final List<dynamic> caffeineIntakes; // 咖啡因攝取
+  final List<Map<String, dynamic>> wakePeriods; // merged groups
+  final List<Map<String, dynamic>> sleepCycles; // merged groups
+  final List<dynamic> caffeineIntakes; // original records
 
   UserDayData({
     required this.wakePeriods,
@@ -35,16 +35,16 @@ class UserInputHistoryPage extends StatefulWidget {
 }
 
 class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
-  // 定義顏色和樣式
   final Color _primaryColor = const Color(0xFF1F3D5B);
   final Color _accentColor = const Color(0xFF5E91B3);
   final Color _backgroundColor = const Color(0xFFF0F2F5);
   final Color _cardColor = Colors.white;
   final Color _textColor = const Color(0xFF424242);
-  final String baseUrl =
-      'https://wakemate-api-4-0.onrender.com'; // API Base URL
+
+  final String baseUrl = 'https://wakemate-api-4-0.onrender.com';
 
   late Future<UserDayData> _userDataFuture;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -52,29 +52,117 @@ class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
     _userDataFuture = _fetchUserInputHistory();
   }
 
-  // --- 數據獲取和過濾邏輯 ---
+  void _reloadPage() {
+    setState(() {
+      _userDataFuture = _fetchUserInputHistory();
+    });
+  }
 
-  // ✅ 修正點：在這裡扣除 8 小時
-  DateTime? _parseAndLocalize(String? datetimeStr) {
-    if (datetimeStr == null || datetimeStr.isEmpty) return null;
+  AppLocalizations get loc => AppLocalizations.of(context)!;
+
+  // ========= 新增字串集中區 =========
+  String get _editText => loc.edit;
+  String get _deleteText => loc.delete;
+  String get _cancelText => loc.cancel;
+  String get _saveText => loc.save;
+
+  String get _deleteDialogTitle => loc.deleteRecordTitle;
+  String get _deleteDialogMessage => loc.deleteRecordMessage;
+
+  String get _editSleepTitle => loc.editSleepRecord;
+  String get _editWakeTitle => loc.editWakePeriod;
+  String get _editIntakeTitle => loc.editCaffeineIntake;
+
+  String get _startTimeLabel => loc.startTime;
+  String get _endTimeLabel => loc.endTime;
+  String get _intakeTimeLabel => loc.intakeTimeLabel;
+  String get _drinkNameLabel => loc.drinkNameLabel;
+  String get _caffeineAmountLabel => loc.caffeineAmountLabel;
+  String get _dateTimeHint => loc.dateTimeHint;
+
+  String get _deleteSuccessText => loc.deletedSuccessfully;
+  String get _updateSuccessText => loc.updatedSuccessfully;
+  String get _deleteFailedText => loc.deleteFailed;
+  String get _updateFailedText => loc.updateFailed;
+
+  String get _invalidDateTimeText => loc.invalidDateTimeFormat;
+  String get _invalidAmountText => loc.invalidCaffeineAmount;
+  String get _emptyDrinkNameText => loc.emptyDrinkName;
+  String get _endMustBeLaterText => loc.endTimeMustBeLater;
+
+  String _mergedFromText(int count) => loc.mergedFromRecords(count);
+  String get _singleRecordText => loc.singleRecordCount;
+  String get _originalRecordText => loc.originalRecord;
+  // ================================
+
+  DateTime? _parseUserInputTime(String? datetimeStr) {
+    if (datetimeStr == null || datetimeStr.trim().isEmpty) return null;
+
     try {
-      // 1. 先解析 API 回傳的 UTC 時間字串
-      final parsedTime = DateTime.parse(datetimeStr);
-      // 2. 轉換為本地時間 (這一步會自動 +8 小時)
-      final localTime = parsedTime.toLocal();
-      // 3. 根據您的要求，手動減去 8 小時來修正
-      return localTime.subtract(const Duration(hours: 8));
+      final raw = datetimeStr.trim();
+
+      final hasTimezone = raw.endsWith('Z') ||
+          RegExp(r'([+-]\d{2}:\d{2})$').hasMatch(raw);
+
+      final parsed = DateTime.parse(raw);
+
+      // 顯示使用者輸入的牆上時間
+      if (hasTimezone) {
+        final utc = parsed.toUtc();
+        return DateTime(
+          utc.year,
+          utc.month,
+          utc.day,
+          utc.hour,
+          utc.minute,
+          utc.second,
+          utc.millisecond,
+          utc.microsecond,
+        );
+      }
+
+      return parsed;
     } catch (e) {
-      print('Error parsing or adjusting time: $e');
+      debugPrint('Error parsing user input time: $datetimeStr, error: $e');
       return null;
     }
   }
 
-  bool _isDateInRange(DateTime dateTime, DateTime dateStart, DateTime dateEnd) {
-    return dateTime.isAfter(
-          dateStart.subtract(const Duration(milliseconds: 1)),
-        ) &&
-        dateTime.isBefore(dateEnd);
+  String _formatDateTime(DateTime dt) {
+    return DateFormat('yyyy-MM-dd HH:mm').format(dt);
+  }
+
+  String _formatDisplayTime(DateTime dt) {
+    return DateFormat('MM/dd HH:mm').format(dt);
+  }
+
+  DateTime? _parseEditorDateTime(String raw) {
+    try {
+      return DateFormat('yyyy-MM-dd HH:mm').parseStrict(raw.trim());
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _toApiDateTimeString(DateTime dt) {
+    return DateFormat('yyyy-MM-ddTHH:mm:ss').format(dt);
+  }
+
+  bool _isPointInSelectedDate(
+    DateTime point,
+    DateTime dateStart,
+    DateTime dateEnd,
+  ) {
+    return !point.isBefore(dateStart) && point.isBefore(dateEnd);
+  }
+
+  bool _doesRangeOverlapSelectedDate(
+    DateTime start,
+    DateTime end,
+    DateTime dateStart,
+    DateTime dateEnd,
+  ) {
+    return start.isBefore(dateEnd) && end.isAfter(dateStart);
   }
 
   Future<List<dynamic>> _fetchData(
@@ -84,41 +172,84 @@ class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
   ) async {
     try {
       final url = '$baseUrl/$endpoint/?user_id=$userId&date=$dateQuery';
-      final response = await http
-          .get(Uri.parse(url))
-          .timeout(const Duration(seconds: 10));
+      final response =
+          await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
-        // 🚨 修正點：使用 response.bodyBytes 和 utf8.decode 進行強制 UTF-8 解碼
-        final String decodedBody = utf8.decode(response.bodyBytes);
+        final decodedBody = utf8.decode(response.bodyBytes);
         return json.decode(decodedBody) as List<dynamic>;
       } else {
-        // 🚨 修正點：錯誤訊息也需要解碼
-        final String decodedErrorBody = utf8.decode(response.bodyBytes);
-        print('API Error for $endpoint: ${response.statusCode}');
-        print('API Error Body: $decodedErrorBody');
-        // 如果 API 返回 404/204 等表示無數據的狀態碼，可以視為空列表
+        final decodedErrorBody = utf8.decode(response.bodyBytes);
+        debugPrint('API Error for $endpoint: ${response.statusCode}');
+        debugPrint('API Error Body: $decodedErrorBody');
         return [];
       }
     } catch (e) {
-      print('Network Error for $endpoint: $e');
-      // 如果發生網路錯誤，拋出錯誤，讓 FutureBuilder 處理
-      throw Exception('無法連線到 $endpoint: $e');
+      debugPrint('Network Error for $endpoint: $e');
+      throw Exception('Failed to connect to $endpoint: $e');
     }
   }
 
-  /// 實際從 API 獲取使用者輸入歷史數據
+  List<Map<String, dynamic>> _mergeTimeRanges({
+    required List<dynamic> rawList,
+    required String startKey,
+    required String endKey,
+  }) {
+    final List<Map<String, dynamic>> parsedRanges = [];
+
+    for (final item in rawList) {
+      final start = _parseUserInputTime(item[startKey] as String?);
+      final end = _parseUserInputTime(item[endKey] as String?);
+
+      if (start == null || end == null) continue;
+      if (!end.isAfter(start)) continue;
+
+      parsedRanges.add({
+        'start': start,
+        'end': end,
+        'sourceItems': [item],
+      });
+    }
+
+    if (parsedRanges.isEmpty) return [];
+
+    parsedRanges.sort(
+      (a, b) => (a['start'] as DateTime).compareTo(b['start'] as DateTime),
+    );
+
+    final List<Map<String, dynamic>> merged = [];
+
+    for (final current in parsedRanges) {
+      if (merged.isEmpty) {
+        merged.add(current);
+        continue;
+      }
+
+      final last = merged.last;
+      final lastEnd = last['end'] as DateTime;
+      final currentStart = current['start'] as DateTime;
+      final currentEnd = current['end'] as DateTime;
+
+      // 你的規則：若下一段 start <= 目前段 end，合併
+      if (!currentStart.isAfter(lastEnd)) {
+        if (currentEnd.isAfter(lastEnd)) {
+          last['end'] = currentEnd;
+        }
+        (last['sourceItems'] as List).addAll(current['sourceItems'] as List);
+      } else {
+        merged.add(current);
+      }
+    }
+
+    return merged;
+  }
+
   Future<UserDayData> _fetchUserInputHistory() async {
     final dateQuery = DateFormat('yyyy-MM-dd').format(widget.selectedDate);
     final userId = widget.userId;
 
-    // 同時發送三個請求
-    final List<List<dynamic>> rawResults = await Future.wait([
-      _fetchData(
-        'users_wake',
-        userId,
-        dateQuery,
-      ).catchError((_) => []), // 捕獲錯誤，返回空列表
+    final rawResults = await Future.wait([
+      _fetchData('users_wake', userId, dateQuery).catchError((_) => []),
       _fetchData('users_sleep', userId, dateQuery).catchError((_) => []),
       _fetchData('users_intake', userId, dateQuery).catchError((_) => []),
     ]);
@@ -127,7 +258,6 @@ class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
     final rawSleepCycles = rawResults[1];
     final rawCaffeineIntakes = rawResults[2];
 
-    // --- 數據過濾 (本地時間篩選) ---
     final dateStart = DateTime(
       widget.selectedDate.year,
       widget.selectedDate.month,
@@ -135,42 +265,352 @@ class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
     );
     final dateEnd = dateStart.add(const Duration(days: 1));
 
-    // 喚醒時段 (以 target_start_time 判斷)
-    final filteredWake =
-        rawWakePeriods.where((item) {
-          final localStart = _parseAndLocalize(
-            item['target_start_time'] as String?,
-          );
-          return localStart != null &&
-              _isDateInRange(localStart, dateStart, dateEnd);
-        }).toList();
+    final filteredWake = rawWakePeriods.where((item) {
+      if (item['is_active'] == false) return false;
 
-    // 睡眠週期 (以 sleep_end_time 判斷屬於哪一天)
-    final filteredSleep =
-        rawSleepCycles.where((item) {
-          final localEnd = _parseAndLocalize(item['sleep_end_time'] as String?);
-          return localEnd != null &&
-              _isDateInRange(localEnd, dateStart, dateEnd);
-        }).toList();
+      final start = _parseUserInputTime(item['target_start_time'] as String?);
+      final end = _parseUserInputTime(item['target_end_time'] as String?);
 
-    // 咖啡因攝取 (以 taking_timestamp 判斷)
-    final filteredIntake =
-        rawCaffeineIntakes.where((item) {
-          final localTake = _parseAndLocalize(
-            item['taking_timestamp'] as String?,
-          );
-          return localTake != null &&
-              _isDateInRange(localTake, dateStart, dateEnd);
-        }).toList();
+      if (start == null || end == null) return false;
+
+      return _doesRangeOverlapSelectedDate(start, end, dateStart, dateEnd);
+    }).toList();
+
+    final filteredSleep = rawSleepCycles.where((item) {
+      if (item['is_active'] == false) return false;
+
+      final start = _parseUserInputTime(item['sleep_start_time'] as String?);
+      final end = _parseUserInputTime(item['sleep_end_time'] as String?);
+
+      if (start == null || end == null) return false;
+
+      return _doesRangeOverlapSelectedDate(start, end, dateStart, dateEnd);
+    }).toList();
+
+    final filteredIntake = rawCaffeineIntakes.where((item) {
+      if (item['is_active'] == false) return false;
+
+      final take = _parseUserInputTime(item['taking_timestamp'] as String?);
+      if (take == null) return false;
+
+      return _isPointInSelectedDate(take, dateStart, dateEnd);
+    }).toList();
+
+    filteredIntake.sort((a, b) {
+      final ta = _parseUserInputTime(a['taking_timestamp'] as String?);
+      final tb = _parseUserInputTime(b['taking_timestamp'] as String?);
+      if (ta == null || tb == null) return 0;
+      return ta.compareTo(tb);
+    });
 
     return UserDayData(
-      wakePeriods: filteredWake,
-      sleepCycles: filteredSleep,
+      wakePeriods: _mergeTimeRanges(
+        rawList: filteredWake,
+        startKey: 'target_start_time',
+        endKey: 'target_end_time',
+      ),
+      sleepCycles: _mergeTimeRanges(
+        rawList: filteredSleep,
+        startKey: 'sleep_start_time',
+        endKey: 'sleep_end_time',
+      ),
       caffeineIntakes: filteredIntake,
     );
   }
 
-  // --- UI 建構區塊 (其餘保持不變) ---
+  Uri _getEntryUri(String type, dynamic item) {
+    final id = item['id'];
+    switch (type) {
+      case 'sleep':
+        return Uri.parse('$baseUrl/users_sleep/$id');
+      case 'wake':
+        return Uri.parse('$baseUrl/users_wake/$id');
+      case 'intake':
+        return Uri.parse('$baseUrl/users_intake/$id');
+      default:
+        throw Exception('Unknown type: $type');
+    }
+  }
+
+  Future<void> _deleteRecord({
+    required String type,
+    required dynamic item,
+  }) async {
+    final id = item['id'];
+    if (id == null) {
+      _showSnackBar('$_deleteFailedText: missing id');
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final uri = _getEntryUri(type, item);
+
+      final response = await http.delete(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        _showSnackBar(_deleteSuccessText, color: Colors.green);
+        _reloadPage();
+      } else {
+        final body = utf8.decode(response.bodyBytes);
+        _showSnackBar('$_deleteFailedText: ${response.statusCode} $body');
+      }
+    } catch (e) {
+      _showSnackBar('$_deleteFailedText: $e');
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  Future<void> _updateRecord({
+    required String type,
+    required dynamic item,
+    required Map<String, dynamic> body,
+  }) async {
+    final id = item['id'];
+    if (id == null) {
+      _showSnackBar('$_updateFailedText: missing id');
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final uri = _getEntryUri(type, item);
+
+      final response = await http.put(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        _showSnackBar(_updateSuccessText, color: Colors.green);
+        _reloadPage();
+      } else {
+        final resBody = utf8.decode(response.bodyBytes);
+        _showSnackBar('$_updateFailedText: ${response.statusCode} $resBody');
+      }
+    } catch (e) {
+      _showSnackBar('$_updateFailedText: $e');
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  void _showSnackBar(String message, {Color color = Colors.red}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: color,
+      ),
+    );
+  }
+
+  Future<void> _confirmDelete({
+    required String type,
+    required dynamic item,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(_deleteDialogTitle),
+          content: Text(_deleteDialogMessage),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(_cancelText),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: Text(_deleteText),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      await _deleteRecord(type: type, item: item);
+    }
+  }
+
+  Future<void> _showEditDialog({
+    required String type,
+    required dynamic item,
+  }) async {
+    if (type == 'sleep' || type == 'wake') {
+      final startKey =
+          type == 'sleep' ? 'sleep_start_time' : 'target_start_time';
+      final endKey = type == 'sleep' ? 'sleep_end_time' : 'target_end_time';
+
+      final currentStart = _parseUserInputTime(item[startKey] as String?);
+      final currentEnd = _parseUserInputTime(item[endKey] as String?);
+
+      final startController = TextEditingController(
+        text: currentStart != null ? _formatDateTime(currentStart) : '',
+      );
+      final endController = TextEditingController(
+        text: currentEnd != null ? _formatDateTime(currentEnd) : '',
+      );
+
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: Text(type == 'sleep' ? _editSleepTitle : _editWakeTitle),
+            content: SingleChildScrollView(
+              child: Column(
+                children: [
+                  TextField(
+                    controller: startController,
+                    decoration: InputDecoration(
+                      labelText: _startTimeLabel,
+                      hintText: _dateTimeHint,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: endController,
+                    decoration: InputDecoration(
+                      labelText: _endTimeLabel,
+                      hintText: _dateTimeHint,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: Text(_cancelText),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: Text(_saveText),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (confirmed != true) return;
+
+      final start = _parseEditorDateTime(startController.text);
+      final end = _parseEditorDateTime(endController.text);
+
+      if (start == null || end == null) {
+        _showSnackBar(_invalidDateTimeText);
+        return;
+      }
+
+      if (!end.isAfter(start)) {
+        _showSnackBar(_endMustBeLaterText);
+        return;
+      }
+
+      final body = {
+        startKey: _toApiDateTimeString(start),
+        endKey: _toApiDateTimeString(end),
+      };
+
+      await _updateRecord(type: type, item: item, body: body);
+      return;
+    }
+
+    if (type == 'intake') {
+      final currentTime =
+          _parseUserInputTime(item['taking_timestamp'] as String?);
+      final currentAmount = item['caffeine_amount']?.toString() ?? '';
+      final currentDrink = item['drink_name']?.toString() ?? '';
+
+      final timeController = TextEditingController(
+        text: currentTime != null ? _formatDateTime(currentTime) : '',
+      );
+      final amountController = TextEditingController(text: currentAmount);
+      final drinkController = TextEditingController(text: currentDrink);
+
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: Text(_editIntakeTitle),
+            content: SingleChildScrollView(
+              child: Column(
+                children: [
+                  TextField(
+                    controller: timeController,
+                    decoration: InputDecoration(
+                      labelText: _intakeTimeLabel,
+                      hintText: _dateTimeHint,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: drinkController,
+                    decoration: InputDecoration(
+                      labelText: _drinkNameLabel,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: amountController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: _caffeineAmountLabel,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: Text(_cancelText),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: Text(_saveText),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (confirmed != true) return;
+
+      final time = _parseEditorDateTime(timeController.text);
+      final amount = int.tryParse(amountController.text.trim());
+      final drinkName = drinkController.text.trim();
+
+      if (time == null) {
+        _showSnackBar(_invalidDateTimeText);
+        return;
+      }
+      if (amount == null || amount < 0) {
+        _showSnackBar(_invalidAmountText);
+        return;
+      }
+      if (drinkName.isEmpty) {
+        _showSnackBar(_emptyDrinkNameText);
+        return;
+      }
+
+      final body = {
+        'taking_timestamp': _toApiDateTimeString(time),
+        'drink_name': drinkName,
+        'caffeine_amount': amount,
+      };
+
+      await _updateRecord(type: 'intake', item: item, body: body);
+    }
+  }
 
   Widget _buildDataRow({
     required IconData icon,
@@ -227,6 +667,176 @@ class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
     );
   }
 
+  Widget _buildActionButtons({
+    required String type,
+    required dynamic item,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        TextButton.icon(
+          onPressed: _isSubmitting
+              ? null
+              : () => _showEditDialog(type: type, item: item),
+          icon: const Icon(Icons.edit_outlined, size: 18),
+          label: Text(_editText),
+        ),
+        TextButton.icon(
+          onPressed: _isSubmitting
+              ? null
+              : () => _confirmDelete(type: type, item: item),
+          icon: const Icon(Icons.delete_outline, size: 18),
+          label: Text(_deleteText),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSourceRecordTile({
+    required String type,
+    required dynamic item,
+    required String startKey,
+    required String endKey,
+  }) {
+    final start = _parseUserInputTime(item[startKey] as String?);
+    final end = _parseUserInputTime(item[endKey] as String?);
+
+    if (start == null || end == null) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.grey.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey.withOpacity(0.15)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            _originalRecordText,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: _textColor.withOpacity(0.85),
+            ),
+          ),
+          const SizedBox(height: 6),
+          _buildDataRow(
+            icon: Icons.schedule,
+            title: loc.startTime,
+            content: _formatDisplayTime(start),
+            iconColor: _accentColor,
+          ),
+          _buildDataRow(
+            icon: Icons.schedule,
+            title: loc.endTime,
+            content: _formatDisplayTime(end),
+            iconColor: _accentColor,
+          ),
+          _buildActionButtons(type: type, item: item),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMergedRangeCard({
+    required dynamic item,
+    required String type,
+    required IconData icon,
+    required bool showDuration,
+    required String startKey,
+    required String endKey,
+  }) {
+    final start = item['start'] as DateTime?;
+    final end = item['end'] as DateTime?;
+    final sourceItems = (item['sourceItems'] as List<dynamic>? ?? []);
+
+    if (start == null || end == null) return const SizedBox.shrink();
+
+    final duration = end.difference(start);
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes % 60;
+
+    return Card(
+      color: Colors.grey.withOpacity(0.04),
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 10),
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        leading: Icon(icon, color: _accentColor),
+        title: Text(
+          '${_formatDisplayTime(start)} - ${_formatDisplayTime(end)}',
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: _textColor,
+          ),
+        ),
+        subtitle: Text(
+          sourceItems.length > 1
+              ? _mergedFromText(sourceItems.length)
+              : _singleRecordText,
+          style: TextStyle(
+            fontSize: 12,
+            color: _textColor.withOpacity(0.65),
+          ),
+        ),
+        children: [
+          if (showDuration)
+            _buildDataRow(
+              icon: Icons.timer,
+              title: loc.totalDuration,
+              content: loc.durationHoursMinutes(hours, minutes),
+              iconColor: _accentColor,
+            ),
+          ...sourceItems.map(
+            (source) => _buildSourceRecordTile(
+              type: type,
+              item: source,
+              startKey: startKey,
+              endKey: endKey,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIntakeCard(dynamic item) {
+    final time = _parseUserInputTime(item['taking_timestamp'] as String?);
+    final amount = item['caffeine_amount']?.toString() ?? loc.notAvailable;
+    final name = item['drink_name']?.toString() ?? loc.unknownDrink;
+
+    if (time == null) return const SizedBox.shrink();
+
+    return Card(
+      color: Colors.grey.withOpacity(0.04),
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          children: [
+            _buildDataRow(
+              icon: Icons.schedule,
+              title: loc.intakeTime,
+              content: _formatDisplayTime(time),
+              iconColor: _accentColor,
+            ),
+            _buildDataRow(
+              icon: Icons.spa,
+              title: loc.contentLabel,
+              content: loc.drinkWithAmount(name, amount),
+              iconColor: _accentColor,
+            ),
+            _buildActionButtons(type: 'intake', item: item),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildInputCard({
     required String title,
     required IconData icon,
@@ -275,7 +885,11 @@ class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
     );
   }
 
-  Widget _buildEmptySection(IconData icon, String message) {
+  Widget _buildEmptySection(
+    IconData icon,
+    String message,
+    String subMessage,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 16),
       child: Column(
@@ -293,8 +907,11 @@ class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            "請返回首頁，點擊「新增紀錄」按鈕，選擇對應時段進行記錄。",
-            style: TextStyle(fontSize: 14, color: _textColor.withOpacity(0.5)),
+            subMessage,
+            style: TextStyle(
+              fontSize: 14,
+              color: _textColor.withOpacity(0.5),
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -304,189 +921,124 @@ class _UserInputHistoryPageState extends State<UserInputHistoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    final String formattedDate = DateFormat(
-      'yyyy/MM/dd',
-    ).format(widget.selectedDate);
+    final formattedDate = DateFormat('yyyy/MM/dd').format(widget.selectedDate);
 
-    return Scaffold(
-      backgroundColor: _backgroundColor,
-      appBar: AppBar(
-        title: Text(
-          "$formattedDate 輸入歷史",
-          style: TextStyle(color: _primaryColor, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: _primaryColor),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-      ),
-      body: FutureBuilder<UserDayData>(
-        future: _userDataFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(color: _primaryColor),
-                  const SizedBox(height: 16),
-                  Text("正在載入該日輸入數據...", style: TextStyle(color: _textColor)),
-                ],
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: _backgroundColor,
+          appBar: AppBar(
+            title: Text(
+              loc.userInputHistoryTitle(formattedDate),
+              style: TextStyle(
+                color: _primaryColor,
+                fontWeight: FontWeight.bold,
               ),
-            );
-          } else if (snapshot.hasError) {
-            return _buildEmptySection(
-              Icons.error_outline,
-              "載入輸入歷史時發生錯誤：\n${snapshot.error}",
-            );
-          } else if (snapshot.hasData) {
-            final UserDayData userData = snapshot.data!;
+            ),
+            centerTitle: true,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back, color: _primaryColor),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+          body: FutureBuilder<UserDayData>(
+            future: _userDataFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(color: _primaryColor),
+                      const SizedBox(height: 16),
+                      Text(
+                        loc.loadingUserInputData,
+                        style: TextStyle(color: _textColor),
+                      ),
+                    ],
+                  ),
+                );
+              } else if (snapshot.hasError) {
+                return _buildEmptySection(
+                  Icons.error_outline,
+                  loc.userInputLoadError(snapshot.error.toString()),
+                  loc.returnHomeAndAddRecord,
+                );
+              } else if (snapshot.hasData) {
+                final userData = snapshot.data!;
 
-            if (userData.isEmpty) {
-              return Center(
-                child: _buildEmptySection(
-                  Icons.sentiment_dissatisfied,
-                  "該日無任何輸入記錄。",
-                ),
-              );
-            }
+                if (userData.isEmpty) {
+                  return Center(
+                    child: _buildEmptySection(
+                      Icons.sentiment_dissatisfied,
+                      loc.noUserInputOnThisDay,
+                      loc.returnHomeAndAddRecord,
+                    ),
+                  );
+                }
 
-            return ListView(
-              padding: const EdgeInsets.all(20.0),
-              children: [
-                _buildSectionTitle(Icons.person_pin_outlined, "您的輸入歷史"),
-
-                // 1. 實際睡眠週期
-                _buildInputCard(
-                  title: "實際睡眠週期",
-                  icon: Icons.bedtime_outlined,
-                  dataList: userData.sleepCycles,
-                  isEmptyMessage: "無實際睡眠記錄",
-                  buildItem: (item) {
-                    final start = _parseAndLocalize(
-                      item['sleep_start_time'] as String?,
-                    );
-                    final end = _parseAndLocalize(
-                      item['sleep_end_time'] as String?,
-                    );
-
-                    if (start == null || end == null) return const SizedBox();
-
-                    final duration = end.difference(start);
-                    final hours = duration.inHours;
-                    final minutes = duration.inMinutes % 60;
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildDataRow(
-                          icon: Icons.arrow_right_alt,
-                          title: "開始時間",
-                          content: DateFormat('MM/dd HH:mm').format(start),
-                          iconColor: _accentColor,
+                return RefreshIndicator(
+                  onRefresh: () async => _reloadPage(),
+                  child: ListView(
+                    padding: const EdgeInsets.all(20.0),
+                    children: [
+                      _buildSectionTitle(
+                        Icons.person_pin_outlined,
+                        loc.yourInputHistory,
+                      ),
+                      _buildInputCard(
+                        title: loc.actualSleepCycle,
+                        icon: Icons.hotel_outlined,
+                        dataList: userData.sleepCycles,
+                        isEmptyMessage: loc.noActualSleepRecord,
+                        buildItem: (item) => _buildMergedRangeCard(
+                          item: item,
+                          type: 'sleep',
+                          icon: Icons.hotel_outlined,
+                          showDuration: true,
+                          startKey: 'sleep_start_time',
+                          endKey: 'sleep_end_time',
                         ),
-                        _buildDataRow(
-                          icon: Icons.arrow_right_alt,
-                          title: "結束時間",
-                          content: DateFormat('MM/dd HH:mm').format(end),
-                          iconColor: _accentColor,
+                      ),
+                      _buildInputCard(
+                        title: loc.targetWakePeriod,
+                        icon: Icons.access_time_filled,
+                        dataList: userData.wakePeriods,
+                        isEmptyMessage: loc.noTargetWakePeriodRecord,
+                        buildItem: (item) => _buildMergedRangeCard(
+                          item: item,
+                          type: 'wake',
+                          icon: Icons.visibility_outlined,
+                          showDuration: false,
+                          startKey: 'target_start_time',
+                          endKey: 'target_end_time',
                         ),
-                        _buildDataRow(
-                          icon: Icons.timer,
-                          title: "總時長",
-                          content: "${hours}小時 ${minutes}分鐘",
-                          iconColor: _accentColor,
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-                    );
-                  },
-                ),
+                      ),
+                      _buildInputCard(
+                        title: loc.caffeineIntake,
+                        icon: Icons.local_cafe_outlined,
+                        dataList: userData.caffeineIntakes,
+                        isEmptyMessage: loc.noCaffeineIntakeRecord,
+                        buildItem: (item) => _buildIntakeCard(item),
+                      ),
+                      const SizedBox(height: 30),
+                    ],
+                  ),
+                );
+              }
 
-                // 2. 目標清醒時段
-                _buildInputCard(
-                  title: "目標清醒時段",
-                  icon: Icons.access_time_filled,
-                  dataList: userData.wakePeriods,
-                  isEmptyMessage: "無目標清醒時段記錄",
-                  buildItem: (item) {
-                    final start = _parseAndLocalize(
-                      item['target_start_time'] as String?,
-                    );
-                    final end = _parseAndLocalize(
-                      item['target_end_time'] as String?,
-                    );
-
-                    if (start == null || end == null) return const SizedBox();
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildDataRow(
-                          icon: Icons.wb_sunny_outlined,
-                          title: "開始時間",
-                          content: DateFormat('MM/dd HH:mm').format(start),
-                          iconColor: _accentColor,
-                        ),
-                        _buildDataRow(
-                          icon: Icons.wb_sunny_outlined,
-                          title: "結束時間",
-                          content: DateFormat('MM/dd HH:mm').format(end),
-                          iconColor: _accentColor,
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-                    );
-                  },
-                ),
-
-                // 3. 咖啡因攝取
-                _buildInputCard(
-                  title: "咖啡因攝取",
-                  icon: Icons.local_cafe_outlined,
-                  dataList: userData.caffeineIntakes,
-                  isEmptyMessage: "無咖啡因攝取記錄",
-                  buildItem: (item) {
-                    final time = _parseAndLocalize(
-                      item['taking_timestamp'] as String?,
-                    );
-                    final amount = item['caffeine_amount'] ?? 'N/A';
-                    final name = item['drink_name'] ?? '未知飲料';
-
-                    if (time == null) return const SizedBox();
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildDataRow(
-                          icon: Icons.schedule,
-                          title: "飲用時間",
-                          content: DateFormat('MM/dd HH:mm').format(time),
-                          iconColor: _accentColor,
-                        ),
-                        _buildDataRow(
-                          icon: Icons.spa,
-                          title: "內容",
-                          content: "$name ($amount 毫克)",
-                          iconColor: _accentColor,
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-                    );
-                  },
-                ),
-                const SizedBox(height: 30),
-              ],
-            );
-          }
-          return const SizedBox.shrink();
-        },
-      ),
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+        if (_isSubmitting)
+          Container(
+            color: Colors.black.withOpacity(0.15),
+            child: const Center(child: CircularProgressIndicator()),
+          ),
+      ],
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:my_app/screens/alertness_test.dart';
 import 'package:my_app/screens/personalSettingsPage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:my_app/screens/LanguageSettingPage.dart';
+import 'package:my_app/gen_l10n/app_localizations.dart';
 
 class CustomDrawer extends StatelessWidget {
   final String userId;
@@ -48,7 +49,7 @@ class CustomDrawer extends StatelessWidget {
 
   Future<void> _logout(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear(); // 一次清掉全部登入資訊
+    await prefs.clear();
 
     if (context.mounted) {
       Navigator.pushAndRemoveUntil(
@@ -61,13 +62,14 @@ class CustomDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Drawer(
       child: SafeArea(
         child: Container(
           color: _lightColor,
           child: Column(
             children: [
-              // Header 區塊
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
@@ -131,8 +133,6 @@ class CustomDrawer extends StatelessWidget {
                   ],
                 ),
               ),
-
-              // 中間內容：滾動列表
               Expanded(
                 child: ListView(
                   padding: EdgeInsets.zero,
@@ -141,7 +141,7 @@ class CustomDrawer extends StatelessWidget {
                     _buildDrawerItem(
                       context,
                       icon: Icons.settings_outlined,
-                      title: "個人身體數據",
+                      title: l10n.personalBodyData,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -155,14 +155,13 @@ class CustomDrawer extends StatelessWidget {
                     _buildDrawerItem(
                       context,
                       icon: Icons.bolt_outlined,
-                      title: "清醒度測試",
+                      title: l10n.alertnessTestTitle,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder:
-                                (context) => AlertnessTestPage(userId: userId),
+                            builder: (context) => AlertnessTestPage(userId: userId),
                           ),
                         );
                       },
@@ -170,7 +169,7 @@ class CustomDrawer extends StatelessWidget {
                     _buildDrawerItem(
                       context,
                       icon: Icons.language_outlined,
-                      title: "語言設定",
+                      title: l10n.languageSettingsTitle,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -195,19 +194,17 @@ class CustomDrawer extends StatelessWidget {
                     _buildDrawerItem(
                       context,
                       icon: Icons.logout_rounded,
-                      title: "登出",
+                      title: l10n.logout,
                       isLogout: true,
                       onTap: () => _logout(context),
                     ),
                   ],
                 ),
               ),
-
-              // 底部版本資訊
               Padding(
                 padding: const EdgeInsets.only(bottom: 15.0, top: 10.0),
                 child: Text(
-                  'WakeMate v1.0.0 © 2024',
+                  'WakeMate v1.0.0 © 2026',
                   style: TextStyle(
                     color: _primaryColor.withOpacity(0.5),
                     fontSize: 12,

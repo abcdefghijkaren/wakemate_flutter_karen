@@ -1,4 +1,10 @@
 {
+  "languageSetting": "語言",
+  "languageTraditionalChinese": "繁體中文",
+  "languageEnglish": "English",
+  "languageIndonesian": "Bahasa Indonesia",
+
+
   "@@locale": "zh_TW",
   "languageSettingsTitle": "語言設定",
   "selectYourLanguage": "選擇您的偏好語言",
@@ -9,10 +15,416 @@
   "sleepDurationToday": "今日睡眠時數",
   "unitMg": " 毫克",
   "unitHours": " 小時",
-  "wakeTime": "清醒時段",
-  "sleepTime": "睡眠時段",
+  "wakeTime": "目標專注時段",
+  "sleepTime": "實際睡眠時段",
   "caffeineLog": "咖啡因紀錄",
   "inputHistory": "輸入歷史",
   "calculateRecommendation": "計算推薦",
-  "recommendationHistory": "推薦結果"
+  "recommendationHistory": "推薦結果",
+
+  "alertnessTestTitle": "清醒度測試",
+  "tapToStart": "當色塊變色時，請立即點擊",
+  "pleaseWait": "請等待...",
+  "pleaseTap": "請點擊！",
+  "tapTooSoon": "❌ 點太快了！重來",
+  "testResult": "測試結果",
+  "reactionTimesLabel": "每次反應時間：",
+  "reactionTimeTrial": "第{trial}次：{milliseconds} 毫秒",
+  "@reactionTimeTrial": {
+    "placeholders": {
+      "trial": {
+        "type": "int"
+      },
+      "milliseconds": {
+        "type": "int"
+      }
+    }
+  },
+  "averageReactionTime": "平均反應時間：{avg} 毫秒",
+  "@averageReactionTime": {
+    "placeholders": {
+      "avg": {
+        "type": "String"
+      }
+    }
+  },
+  "selectKssLevel": "選擇您覺得的清醒程度:",
+  "chooseKssScore": "選擇清醒程度",
+  "testAgain": "再測一次",
+  "finishAndClose": "完成並關閉",
+  "dataSentSuccess": "數據已成功送出！",
+  "submitFailed": "送出失敗，狀態碼：{statusCode}",
+  "@submitFailed": {
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "networkErrorCannotSubmit": "網路錯誤，無法送出數據",
+  "startTest": "開始測試",
+  "kssLevel1": "極度清醒",
+  "kssLevel2": "非常清醒",
+  "kssLevel3": "清醒",
+  "kssLevel4": "比較清醒",
+  "kssLevel5": "不太清醒但也無睏意",
+  "kssLevel6": "有一些睏意傾向",
+  "kssLevel7": "有睏意，但是不需要努力保持清醒",
+  "kssLevel8": "有睏意，且需要一定的努力保持清醒",
+  "kssLevel9": "非常睏倦，需要極大的努力保持清醒，幾乎入睡",
+
+  "personalBodyData": "個人身體數據",
+  "logout": "登出",
+
+  "userDefaultName": "用戶",
+  "enterEmailAndPassword": "請輸入 Email 與密碼",
+  "loginSuccess": "登入成功！",
+  "loginSuccessButNoUserId": "登入成功，但無法取得使用者 ID",
+  "loginFailed": "登入失敗：Email 或密碼不正確",
+  "unknownServerError": "伺服器發生未知錯誤",
+  "loginFailedWithReason": "登入失敗：{errorMsg}",
+  "@loginFailedWithReason": {
+    "placeholders": {
+      "errorMsg": {
+        "type": "String"
+      }
+    }
+  },
+  "loginFailedInvalidResponse": "登入失敗：伺服器回傳了無效的回應",
+  "networkErrorCannotConnectServer": "錯誤：無法連線到伺服器",
+  "welcomeBack": "歡迎回來",
+  "loginTitle": "帳號登入",
+  "loginDescription": "請輸入您的 Email 與密碼",
+  "email": "Email",
+  "password": "密碼",
+  "login": "登入",
+  "noAccount": "還沒有帳號？",
+  "registerNow": "點此註冊",
+
+  "registerAccount": "註冊新帳號",
+  "createAccount": "創建新帳號",
+  "register": "註冊",
+  "registerSuccess": "註冊成功！請登入",
+  "emailExists": "此 Email 已被註冊",
+  "registerFailed": "註冊失敗",
+  "name": "名稱",
+  "fillAllFields": "請輸入所有欄位",
+  "invalidEmail": "Email 格式不正確",
+
+  "personalBodyData": "個人身體數據",
+  "gender": "性別",
+  "male": "男",
+  "female": "女",
+  "age": "年齡",
+  "enterAge": "請輸入您的年齡",
+  "ageRequired": "年齡為必填項",
+  "invalidAge": "請輸入有效的年齡",
+  "heightCm": "身高 (cm)",
+  "enterHeight": "請輸入您的身高",
+  "heightRequired": "身高為必填項",
+  "invalidHeight": "請輸入有效身高",
+  "weightKg": "體重 (kg)",
+  "enterWeight": "請輸入您的體重",
+  "weightRequired": "體重為必填項",
+  "invalidWeight": "請輸入有效體重",
+  "bmi": "BMI",
+  "autoCalculateBMI": "將自動計算您的 BMI",
+  "saveSettings": "保存設定",
+  "saving": "保存中...",
+  "saveSuccess": "設定已保存成功！",
+  "saveFailed": "保存失敗",
+  "loadFailed": "讀取資料失敗",
+  "completeRequiredFieldsAndGender": "請完整填寫所有必填資料並選擇性別",
+  "errorPrefix": "錯誤",
+
+  "addCaffeineLog": "新增咖啡因紀錄",
+  "caffeineDescription": "記錄您的咖啡因攝取，以提供個人化建議",
+  "caffeineAmount": "咖啡因含量 (毫克)",
+  "caffeineExample": "例如：150",
+  "drinkName": "飲料名稱",
+  "drinkExample": "例如：拿鐵",
+  "takingTime": "飲用時間",
+  "saveCaffeineLog": "儲存咖啡因紀錄",
+  "fillAllFields": "請填寫所有欄位",
+  "invalidCaffeine": "咖啡因含量必須為正整數",
+  "saveSuccess": "儲存成功",
+  "saveFailed": "儲存失敗",
+  "errorOccurred": "發生錯誤：{error}",
+  "@errorOccurred": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "defaultDrink": "咖啡",
+
+
+  "addActualSleepTime": "新增實際睡眠時間",
+  "actualSleepTimeDescription": "請輸入您實際開始睡覺的時間與結束睡眠的時間，以記錄完整的睡眠週期。",
+  "sleepStartTimePick": "開始睡覺時間（點擊選擇）",
+  "sleepEndTimePick": "結束睡眠時間（點擊選擇）",
+  "sleepStartExample": "例如：2025-11-05 23:00",
+  "sleepEndExample": "例如：2025-11-06 07:00",
+  "saveSleepCycle": "儲存睡眠週期",
+  "sleepPleaseSelectStartAndEndTime": "請選擇睡眠的開始時間與結束時間。",
+  "sleepEndCannotBeEarlierThanStart": "結束時間不能早於開始時間，請檢查日期和時間。",
+  "sleepTooLongOver48Hours": "睡眠時間過長（超過48小時），請確認。",
+  "sleepInvalidTimeFormat": "時間格式錯誤，請重新選擇。",
+  "sleepSaveFailedWithReason": "睡眠紀錄儲存失敗：{statusCode}\n回應：{responseBody}",
+  "@sleepSaveFailedWithReason": {
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      },
+      "responseBody": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepSaveSuccessWithDuration": "睡眠紀錄儲存成功！\n😴 總時長：{hours}小時 {minutes}分鐘",
+  "@sleepSaveSuccessWithDuration": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepDurationCalculationFailed": "資料格式錯誤，無法計算或儲存時長。",
+  "noResponseContent": "無回應內容",
+  "errorOccurred": "發生錯誤：{error}",
+  "@errorOccurred": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+
+
+  "wakePageTitle": "設定目標專注時段",
+  "wakeDescription": "請輸入您希望保持清醒或專注的特定時段。",
+  "wakeFillAllTimeSlots": "請填寫所有時段的開始與結束時間。",
+  "wakeEndBeforeStart": "結束時間早於開始時間，請修正。",
+  "wakeInvalidTimeFormat": "時間格式錯誤",
+  "wakeSingleSlotFailed": "第 {index} 個時段提交失敗 (狀態碼: {status})",
+  "wakeSaveAllSuccess": "成功儲存 {count} 個時段",
+  "wakePartialSuccess": "成功 {success} 個，失敗 {fail} 個",
+  "wakeAllFailed": "全部提交失敗",
+  "wakeSlotTitle": "目標專注時段 #{index}",
+  "startTime": "開始時間",
+  "endTime": "結束時間",
+  "addTimeSlot": "新增時段",
+  "saveWakeTime": "儲存目標專注時段",
+  "wakeDescription": "請輸入您希望保持清醒或專注的特定時段。",
+  "timeExampleStart": "例如：05:00",
+  "timeExampleEnd": "例如：06:00",
+
+
+
+  "userInputHistoryTitle": "{date} 輸入歷史",
+  "@userInputHistoryTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "loadingUserInputData": "正在載入該日輸入數據...",
+  "userInputLoadError": "載入輸入歷史時發生錯誤：\n{error}",
+  "@userInputLoadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "returnHomeAndAddRecord": "請返回首頁，點擊「新增紀錄」按鈕，選擇對應時段進行記錄。",
+  "noUserInputOnThisDay": "該日無任何輸入記錄。",
+  "yourInputHistory": "您的輸入歷史",
+  "actualSleepCycle": "實際睡眠週期",
+  "noActualSleepRecord": "無實際睡眠記錄",
+  "targetWakePeriod": "目標專注時段",
+  "noTargetWakePeriodRecord": "無目標專注時段記錄",
+  "caffeineIntake": "咖啡因攝取",
+  "noCaffeineIntakeRecord": "無咖啡因攝取記錄",
+  "startTime": "開始時間",
+  "endTime": "結束時間",
+  "totalDuration": "總時長",
+  "durationHoursMinutes": "{hours}小時 {minutes}分鐘",
+  "@durationHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "intakeTime": "飲用時間",
+  "contentLabel": "內容",
+  "unknownDrink": "未知飲料",
+  "notAvailable": "N/A",
+  "drinkWithAmount": "{name} ({amount} 毫克)",
+  "@drinkWithAmount": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+
+
+  "caffeineHistoryTitle": "{date} 建議結果",
+  "caffeineSuggestionIndex": "咖啡因建議 #{index}",
+  "activeStatus": "目前有效",
+  "expiredStatus": "已過期",
+  "recommendedTime": "建議攝取時間",
+  "recommendedAmount": "建議攝取量",
+  "updatedTime": "更新時間",
+  "noCaffeineHistory": "{date} 無建議紀錄",
+  "clickToGenerate": "點擊下方按鈕可計算此日期的咖啡因建議。",
+  "recalculate": "重新計算並生成最新建議",
+  "formatError": "格式錯誤",
+  "amountMg": "{amount} 毫克",
+
+
+
+  "caffeineRecommendationPageTitle": "咖啡因建議",
+
+  "recommendationDataFormatError": "推薦資料格式錯誤",
+  "recommendationParseFailed": "推薦資料解析失敗：{error}\n原始內容：{raw}",
+  "@recommendationParseFailed": {
+    "placeholders": {
+      "error": {},
+      "raw": {}
+    }
+  },
+
+  "recommendationUpdatedButNotificationFailed": "部分通知未建立，因為建議攝取時間已經過了。不影響本次推薦結果，請直接依畫面上的建議執行。",
+
+  "noNewRecommendationData": "目前沒有新的推薦資料",
+  "noNewRecommendationDataMessage": "目前沒有新的推薦資料。",
+
+  "calculationFailedWithStatus": "計算失敗：{status}",
+  "@calculationFailedWithStatus": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+
+  "serverErrorWithPreview": "伺服器錯誤 (Status: {status})\n回應內容預覽: {preview}",
+  "@serverErrorWithPreview": {
+    "placeholders": {
+      "status": {},
+      "preview": {}
+    }
+  },
+
+  "timeoutCheckNetwork": "錯誤：請求逾時，請檢查您的網路連線。",
+  "connectionTimedOut": "連線逾時。請檢查網路後重試。",
+
+  "networkConnectionError": "網路連線錯誤，請檢查您的網路。",
+  "cannotConnectToServer": "無法連線到伺服器。請檢查網路。",
+
+  "unknownError": "發生未知錯誤：{error}",
+  "@unknownError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+
+  "wakemateRecommendationGenerated": "WAKEMATE 推薦已產生",
+  "recommendationGeneratedBody": "請於 {time} 攝取 {amount} mg 咖啡因",
+  "@recommendationGeneratedBody": {
+    "placeholders": {
+      "time": {},
+      "amount": {}
+    }
+  },
+
+  "wakemateCaffeineReminder": "WAKEMATE 咖啡因提醒",
+  "caffeineReminderBody": "請於 {time} 攝取 {amount} mg 咖啡因",
+  "@caffeineReminderBody": {
+    "placeholders": {
+      "time": {},
+      "amount": {}
+    }
+  },
+
+  "analyzingCaffeineData": "正在為您分析咖啡因數據...",
+  "thisMayTakeSomeTimePleaseWait": "這可能需要一點時間，請耐心等候",
+
+  "oopsCalculationFailed": "哎呀！計算失敗了...",
+  "retry": "重新嘗試",
+  "backToHomePage": "返回主頁",
+
+
+  "edit": "編輯",
+  "delete": "刪除",
+  "cancel": "取消",
+  "save": "儲存",
+
+  "deleteRecordTitle": "刪除紀錄",
+  "deleteRecordMessage": "此筆紀錄將被刪除，確定要繼續嗎？",
+
+  "editSleepRecord": "編輯睡眠紀錄",
+  "editWakePeriod": "編輯目標專注時段",
+  "editCaffeineIntake": "編輯咖啡因攝取紀錄",
+
+  "intakeTimeLabel": "攝取時間",
+  "drinkNameLabel": "飲料名稱",
+  "caffeineAmountLabel": "咖啡因含量（毫克）",
+  "dateTimeHint": "yyyy-MM-dd HH:mm",
+
+  "deletedSuccessfully": "刪除成功",
+  "updatedSuccessfully": "更新成功",
+  "deleteFailed": "刪除失敗",
+  "updateFailed": "更新失敗",
+
+  "invalidDateTimeFormat": "時間格式錯誤，請使用 yyyy-MM-dd HH:mm",
+  "invalidCaffeineAmount": "請輸入有效的咖啡因含量",
+  "emptyDrinkName": "請輸入飲料名稱",
+  "endTimeMustBeLater": "結束時間必須晚於開始時間",
+
+  "mergedFromRecords": "由 {count} 筆紀錄合併",
+  "@mergedFromRecords": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "singleRecordCount": "1 筆紀錄",
+  "originalRecord": "原始紀錄",
+
+  "pvtKssBaselineTestTitle": "請先完成清醒度測驗",
+  "pvtKssBaselineTestBody": "您即將於 {time} 攝取咖啡因，請先在攝取前完成一次清醒度測驗。",
+  "@pvtKssBaselineTestBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+
+  "pvtKssEffectTestTitle": "請完成咖啡因後測",
+  "pvtKssEffectTestBody": "您已接近咖啡因作用期間，請於現在完成一次清醒度測驗，以評估效果。",
+  "@pvtKssEffectTestBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+
+  "avoidCaffeineBeforeSleepWarning": "為保障您的睡眠品質，睡前 6 小時請避免攝取咖啡因。"
+
 }

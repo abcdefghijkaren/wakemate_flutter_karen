@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-//import 'dart:convert';
 import 'custom_drawer.dart';
 import 'CaffeineRecommendationPage.dart';
 import 'CaffeineHistory.dart';
@@ -10,6 +8,9 @@ import 'WakeTimeLogPage.dart';
 import 'SleepTimeLogPage.dart';
 import 'CaffeineLogPage.dart';
 import 'UserInputHistoryPage.dart';
+import 'package:my_app/gen_l10n/app_localizations.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class HomePage extends StatefulWidget {
   final String userId;
@@ -19,8 +20,8 @@ class HomePage extends StatefulWidget {
   const HomePage({
     super.key,
     required this.userId,
-    this.userName = "",
-    this.email = "",
+    required this.userName,
+    required this.email,
   });
 
   @override
@@ -37,7 +38,6 @@ class _HomePageState extends State<HomePage> {
   final Color _cardColor = Colors.white;
 
   double _totalCaffeine = 0; // mg
-  double _totalSleep = 0; // 小時
 
   @override
   void initState() {
@@ -47,48 +47,104 @@ class _HomePageState extends State<HomePage> {
     _loadDailyStats();
   }
 
-  // --- 載入當日咖啡因與睡眠數據 ---
   Future<void> _loadDailyStats() async {
-    final prefs = await SharedPreferences.getInstance();
-    final dateKey = DateFormat('yyyy-MM-dd').format(_selectedDate);
+    final selectedDateKey = DateFormat('yyyy-MM-dd').format(_selectedDate.toLocal());
 
-    setState(() {
-      _totalCaffeine = prefs.getDouble('caffeine_$dateKey') ?? 0;
-      _totalSleep = prefs.getDouble('sleep_$dateKey') ?? 0;
-    });
+    print("======== LOAD DAILY STATS ========");
+    print("selectedDateKey = $selectedDateKey");
+
+    try {
+      final url = Uri.parse(
+        'https://wakemate-api-4-0.onrender.com/users_intake/?user_id=${widget.userId}',
+      );
+
+      final response = await http.get(url);
+
+      print("statusCode = ${response.statusCode}");
+      print("response.body = ${response.body}");
+
+
+      if (response.statusCode == 200) {
+        final List<dynamic> records = jsonDecode(response.body);
+
+        double total = 0;
+
+        for (final record in records) {
+          final timestamp = record['taking_timestamp'];
+          final caffeineAmount = record['caffeine_amount'];
+
+          print("record = $record");
+
+          if (timestamp == null || caffeineAmount == null) continue;
+
+          final recordDateKey = DateFormat('yyyy-MM-dd').format(
+            DateTime.parse(timestamp),
+          );
+
+          print("recordDateKey = $recordDateKey");
+          print("caffeineAmount = $caffeineAmount");
+
+
+          if (recordDateKey == selectedDateKey) {
+            total += (caffeineAmount as num).toDouble();
+
+            print("MATCH -> total = $total");
+          }
+        }
+
+        if (!mounted) return;
+
+        print("FINAL TOTAL = $total");
+
+        setState(() {
+          _totalCaffeine = total;
+        });
+      } else {
+        if (!mounted) return;
+
+        setState(() {
+          _totalCaffeine = 0;
+        });
+      }
+    } catch (e) {
+      print('Failed to load daily caffeine total: $e');
+
+      if (!mounted) return;
+
+      setState(() {
+        _totalCaffeine = 0;
+      });
+    }
   }
 
-  // --- 導航到推薦結果頁 ---
   Future<void> _navigateToRecommendationHistoryPage() async {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder:
-            (context) => CaffeineHistoryPage(
-              userId: widget.userId,
-              selectedDate: _selectedDate,
-            ),
+        builder: (context) => CaffeineHistoryPage(
+          userId: widget.userId,
+          selectedDate: _selectedDate,
+        ),
       ),
     );
-    _loadDailyStats(); // 返回後立即刷新 Header
+    _loadDailyStats();
   }
 
-  // --- 導航到輸入歷史頁 ---
   void _navigateToUserInputHistoryPage() {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder:
-            (context) => UserInputHistoryPage(
-              userId: widget.userId,
-              selectedDate: _selectedDate,
-            ),
+        builder: (context) => UserInputHistoryPage(
+          userId: widget.userId,
+          selectedDate: _selectedDate,
+        ),
       ),
-    ).then((_) => _loadDailyStats()); // 返回後刷新 Header
+    ).then((_) => _loadDailyStats());
   }
 
-  // --- 顯示新增紀錄選項 ---
   void _showAddOptions(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: _cardColor,
@@ -111,7 +167,7 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 20),
               Text(
-                '新增紀錄',
+                l10n.addRecord,
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -120,54 +176,51 @@ class _HomePageState extends State<HomePage> {
               ),
               const Divider(thickness: 0.8),
               _buildOptionTile(
-                title: '清醒時段',
-                icon: Icons.wb_sunny_outlined,
+                title: l10n.wakeTime,
+                icon: Icons.visibility_outlined,
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder:
-                          (context) => TargetWakeTimePage(
-                            userId: widget.userId,
-                            selectedDate: _selectedDate,
-                          ),
+                      builder: (context) => TargetWakeTimePage(
+                        userId: widget.userId,
+                        selectedDate: _selectedDate,
+                      ),
                     ),
-                  ).then((_) => _loadDailyStats()); // 返回後刷新1
+                  ).then((_) => _loadDailyStats());
                 },
               ),
               _buildOptionTile(
-                title: '睡眠時段',
-                icon: Icons.bed_outlined,
+                title: l10n.sleepTime,
+                icon: Icons.hotel_outlined,
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder:
-                          (context) => ActualSleepTimePage(
-                            userId: widget.userId,
-                            selectedDate: _selectedDate,
-                          ),
+                      builder: (context) => ActualSleepTimePage(
+                        userId: widget.userId,
+                        selectedDate: _selectedDate,
+                      ),
                     ),
-                  ).then((_) => _loadDailyStats()); // 返回後刷新
+                  ).then((_) => _loadDailyStats());
                 },
               ),
               _buildOptionTile(
-                title: '咖啡因紀錄',
+                title: l10n.caffeineLog,
                 icon: Icons.local_cafe_outlined,
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder:
-                          (context) => CaffeineLogPage(
-                            userId: widget.userId,
-                            selectedDate: _selectedDate,
-                          ),
+                      builder: (context) => CaffeineLogPage(
+                        userId: widget.userId,
+                        selectedDate: _selectedDate,
+                      ),
                     ),
-                  ).then((_) => _loadDailyStats()); // 返回後刷新
+                  ).then((_) => _loadDailyStats());
                 },
               ),
             ],
@@ -199,6 +252,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: _bgLight,
       drawer: CustomDrawer(
@@ -220,18 +275,16 @@ class _HomePageState extends State<HomePage> {
         elevation: 3,
         shadowColor: Colors.black12,
         leading: Builder(
-          builder:
-              (context) => IconButton(
-                icon: Icon(Icons.menu, size: 30, color: _primaryColor),
-                onPressed: () => Scaffold.of(context).openDrawer(),
-              ),
+          builder: (context) => IconButton(
+            icon: Icon(Icons.menu, size: 30, color: _primaryColor),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
         ),
       ),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
         child: Column(
           children: [
-            // Header：咖啡因 + 睡眠
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -246,56 +299,29 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ],
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "今日咖啡因攝取量",
-                        style: TextStyle(
-                          color: _primaryColor.withOpacity(0.7),
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        "${_totalCaffeine.toStringAsFixed(0)} mg",
-                        style: TextStyle(
-                          color: _primaryColor,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    l10n.caffeineIntakeToday,
+                    style: TextStyle(
+                      color: _primaryColor.withOpacity(0.7),
+                      fontSize: 14,
+                    ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        "今日睡眠時數",
-                        style: TextStyle(
-                          color: _primaryColor.withOpacity(0.7),
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        "${_totalSleep.toStringAsFixed(1)} 小時",
-                        style: TextStyle(
-                          color: _accentColor,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 4),
+                  Text(
+                    "${_totalCaffeine.toStringAsFixed(0)}${l10n.unitMg}",
+                    style: TextStyle(
+                      color: _primaryColor,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 10),
-            // 日曆卡
             Flexible(
               child: Container(
                 decoration: BoxDecoration(
@@ -311,6 +337,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 padding: const EdgeInsets.all(8),
                 child: TableCalendar(
+                  locale: Localizations.localeOf(context).toString(),
                   firstDay: DateTime.utc(2000, 1, 1),
                   lastDay: DateTime.utc(2100, 12, 31),
                   focusedDay: _focusedDate,
@@ -320,7 +347,7 @@ class _HomePageState extends State<HomePage> {
                       _selectedDate = selected;
                       _focusedDate = focused;
                     });
-                    _loadDailyStats(); // 選日期時更新 Header
+                    _loadDailyStats();
                   },
                   calendarStyle: CalendarStyle(
                     cellMargin: const EdgeInsets.all(2.0),
@@ -363,7 +390,6 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             const SizedBox(height: 10),
-            // 下方按鈕群組
             Column(
               children: [
                 Row(
@@ -381,9 +407,9 @@ class _HomePageState extends State<HomePage> {
                         ),
                         onPressed: () => _showAddOptions(context),
                         icon: const Icon(Icons.add_circle_outline),
-                        label: const Text(
-                          '新增紀錄',
-                          style: TextStyle(
+                        label: Text(
+                          l10n.addRecord,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
@@ -403,9 +429,9 @@ class _HomePageState extends State<HomePage> {
                         ),
                         onPressed: _navigateToUserInputHistoryPage,
                         icon: const Icon(Icons.edit_note),
-                        label: const Text(
-                          '輸入歷史',
-                          style: TextStyle(
+                        label: Text(
+                          l10n.inputHistory,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
@@ -432,18 +458,17 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder:
-                                  (context) => CaffeineRecommendationPage(
-                                    userId: widget.userId,
-                                    selectedDate: _selectedDate,
-                                  ),
+                              builder: (context) => CaffeineRecommendationPage(
+                                userId: widget.userId,
+                                selectedDate: _selectedDate,
+                              ),
                             ),
                           ).then((_) => _loadDailyStats());
                         },
                         icon: const Icon(Icons.auto_graph, size: 22),
-                        label: const Text(
-                          '計算推薦',
-                          style: TextStyle(
+                        label: Text(
+                          l10n.calculateRecommendation,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
@@ -463,9 +488,9 @@ class _HomePageState extends State<HomePage> {
                         ),
                         onPressed: _navigateToRecommendationHistoryPage,
                         icon: const Icon(Icons.history, size: 22),
-                        label: const Text(
-                          '推薦結果',
-                          style: TextStyle(
+                        label: Text(
+                          l10n.recommendationHistory,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),

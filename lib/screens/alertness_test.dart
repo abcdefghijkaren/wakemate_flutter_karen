@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:my_app/gen_l10n/app_localizations.dart';
+// import 'LanguageSettingPage.dart';
 
 class AlertnessTestPage extends StatefulWidget {
   final String userId;
@@ -25,7 +27,7 @@ class _AlertnessTestPageState extends State<AlertnessTestPage> {
   bool _isWaiting = true;
   bool _testStarted = false;
   Color _boxColor = const Color(0xFF5E91B3);
-  String _resultMessage = "點擊開始";
+  String _resultMessage = '';
   DateTime? _startTime;
   final List<Duration> _reactionTimes = [];
   int _currentTrial = 0;
@@ -38,13 +40,23 @@ class _AlertnessTestPageState extends State<AlertnessTestPage> {
   final String baseUrl = 'https://wakemate-api-4-0.onrender.com';
   int? _selectedKssLevel;
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_resultMessage.isEmpty) {
+      _resultMessage = AppLocalizations.of(context)!.tapToStart;
+    }
+  }
+
   void _startTest() {
+    final l10n = AppLocalizations.of(context)!;
+
     setState(() {
       _reactionTimes.clear();
       _currentTrial = 0;
       _lapses = 0;
       _falseStarts = 0;
-      _resultMessage = "請等待...";
+      _resultMessage = l10n.pleaseWait;
     });
     _runTestSequence();
   }
@@ -65,11 +77,13 @@ class _AlertnessTestPageState extends State<AlertnessTestPage> {
     int randomDelay = 1000 + Random().nextInt(4000);
     _timer = Timer(Duration(milliseconds: randomDelay), () {
       if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
+
       setState(() {
         _isWaiting = false;
         _boxColor = _successColor;
         _startTime = DateTime.now();
-        _resultMessage = "請點擊！";
+        _resultMessage = l10n.pleaseTap;
       });
 
       _timer = Timer(const Duration(milliseconds: 2000), () {
@@ -85,13 +99,15 @@ class _AlertnessTestPageState extends State<AlertnessTestPage> {
   void _boxTapped() {
     if (!_testStarted) return;
 
+    final l10n = AppLocalizations.of(context)!;
+
     if (_isWaiting) {
       _timer?.cancel();
       setState(() {
         _testStarted = false;
         _boxColor = _errorColor;
         _isError = true;
-        _resultMessage = "❌ 點太快了！重來";
+        _resultMessage = l10n.tapTooSoon;
         _falseStarts++;
       });
 
@@ -114,8 +130,10 @@ class _AlertnessTestPageState extends State<AlertnessTestPage> {
         _testStarted = false;
         _boxColor = _boxDefaultColor;
         _isError = false;
-        _resultMessage =
-            "第$_currentTrial次: ${adjustedReaction.inMilliseconds} 毫秒";
+        _resultMessage = l10n.reactionTimeTrial(
+          _currentTrial,
+          adjustedReaction.inMilliseconds,
+        );
       });
 
       Future.delayed(const Duration(milliseconds: 1000), () {
@@ -137,31 +155,35 @@ class _AlertnessTestPageState extends State<AlertnessTestPage> {
   }
 
   String _getKssDescription(int level) {
+    final l10n = AppLocalizations.of(context)!;
+
     switch (level) {
       case 1:
-        return "極度警醒";
+        return l10n.kssLevel1;
       case 2:
-        return "非常警醒";
+        return l10n.kssLevel2;
       case 3:
-        return "警醒";
+        return l10n.kssLevel3;
       case 4:
-        return "比較警醒";
+        return l10n.kssLevel4;
       case 5:
-        return "不太警醒但也無睏意";
+        return l10n.kssLevel5;
       case 6:
-        return "有一些睏意傾向";
+        return l10n.kssLevel6;
       case 7:
-        return "有睏意，但是不需要努力保持清醒";
+        return l10n.kssLevel7;
       case 8:
-        return "有睏意，且需要一定的努力保持清醒";
+        return l10n.kssLevel8;
       case 9:
-        return "非常睏倦，需要極大的努力保持清醒";
+        return l10n.kssLevel9;
       default:
         return "";
     }
   }
 
   void _showResultDialog(double avgTime) {
+    final l10n = AppLocalizations.of(context)!;
+
     setState(() {
       _selectedKssLevel = null;
     });
@@ -171,13 +193,15 @@ class _AlertnessTestPageState extends State<AlertnessTestPage> {
     showDialog(
       context: context,
       builder: (context) {
+        final dialogL10n = AppLocalizations.of(context)!;
+
         return AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
           backgroundColor: _backgroundColor,
           title: Text(
-            "測試結果",
+            dialogL10n.testResult,
             textAlign: TextAlign.center,
             style: TextStyle(fontWeight: FontWeight.bold, color: _primaryColor),
           ),
@@ -185,9 +209,9 @@ class _AlertnessTestPageState extends State<AlertnessTestPage> {
             child: ListBody(
               children: [
                 const SizedBox(height: 10),
-                const Text(
-                  "每次反應時間：",
-                  style: TextStyle(
+                Text(
+                  dialogL10n.reactionTimesLabel,
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF555555),
                   ),
@@ -196,7 +220,10 @@ class _AlertnessTestPageState extends State<AlertnessTestPage> {
                   int index = entry.key;
                   Duration time = entry.value;
                   return Text(
-                    "第${index + 1}次：${time.inMilliseconds} 毫秒",
+                    dialogL10n.reactionTimeTrial(
+                      index + 1,
+                      time.inMilliseconds,
+                    ),
                     style: const TextStyle(color: Color(0xFF777777)),
                   );
                 }).toList(),
@@ -206,7 +233,9 @@ class _AlertnessTestPageState extends State<AlertnessTestPage> {
                   color: Color(0xFFDDDDDD),
                 ),
                 Text(
-                  "平均反應時間：${avgTime.toStringAsFixed(2)} 毫秒",
+                  dialogL10n.averageReactionTime(
+                    avgTime.toStringAsFixed(2),
+                  ),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 20,
@@ -215,15 +244,17 @@ class _AlertnessTestPageState extends State<AlertnessTestPage> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  "選擇您覺得的清醒程度 (KSS):",
-                  style: TextStyle(
+                Text(
+                  dialogL10n.selectKssLevel,
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF555555),
                   ),
                 ),
                 StatefulBuilder(
                   builder: (context, setInnerState) {
+                    final dropdownL10n = AppLocalizations.of(context)!;
+
                     return Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
@@ -237,7 +268,7 @@ class _AlertnessTestPageState extends State<AlertnessTestPage> {
                         child: DropdownButton<int>(
                           value: _selectedKssLevel,
                           isExpanded: true,
-                          hint: const Text("選擇 KSS 分數"),
+                          hint: Text(dropdownL10n.chooseKssScore),
                           items:
                               kssLevels.map((int level) {
                                 return DropdownMenuItem<int>(
@@ -281,7 +312,7 @@ class _AlertnessTestPageState extends State<AlertnessTestPage> {
                 foregroundColor: _primaryColor,
                 textStyle: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              child: const Text("再測一次"),
+              child: Text(dialogL10n.testAgain),
             ),
             ElevatedButton(
               onPressed: () {
@@ -300,7 +331,7 @@ class _AlertnessTestPageState extends State<AlertnessTestPage> {
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              child: const Text("完成並關閉"),
+              child: Text(dialogL10n.finishAndClose),
             ),
           ],
         );
@@ -322,6 +353,7 @@ class _AlertnessTestPageState extends State<AlertnessTestPage> {
     int lapses,
     int falseStarts,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     final url = Uri.parse('$baseUrl/users_pvt/');
 
     try {
@@ -342,9 +374,9 @@ class _AlertnessTestPageState extends State<AlertnessTestPage> {
       if (res.statusCode == 200 || res.statusCode == 201) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('數據已成功送出！'),
-              backgroundColor: Color(0xFF28A745),
+            SnackBar(
+              content: Text(l10n.dataSentSuccess),
+              backgroundColor: const Color(0xFF28A745),
             ),
           );
         }
@@ -352,7 +384,7 @@ class _AlertnessTestPageState extends State<AlertnessTestPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('送出失敗，狀態碼：${res.statusCode}'),
+              content: Text(l10n.submitFailed(res.statusCode)),
               backgroundColor: _errorColor,
             ),
           );
@@ -361,9 +393,9 @@ class _AlertnessTestPageState extends State<AlertnessTestPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('網路錯誤，無法送出數據'),
-            backgroundColor: Color(0xFFDC3545),
+          SnackBar(
+            content: Text(l10n.networkErrorCannotSubmit),
+            backgroundColor: const Color(0xFFDC3545),
           ),
         );
       }
@@ -378,11 +410,13 @@ class _AlertnessTestPageState extends State<AlertnessTestPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: _backgroundColor,
       appBar: AppBar(
         title: Text(
-          "清醒度測試",
+          l10n.alertnessTestTitle,
           style: TextStyle(
             color: _primaryColor,
             fontWeight: FontWeight.bold,
@@ -393,6 +427,20 @@ class _AlertnessTestPageState extends State<AlertnessTestPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(color: _primaryColor),
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.language),
+        //     tooltip: 'Language',
+        //     onPressed: () {
+        //       Navigator.push(
+        //         context,
+        //         MaterialPageRoute(
+        //           builder: (_) => const LanguageSettingPage(),
+        //         ),
+        //       );
+        //     },
+        //   ),
+        // ],
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -428,18 +476,6 @@ class _AlertnessTestPageState extends State<AlertnessTestPage> {
                       ),
                     ],
                   ),
-                  alignment: Alignment.center,
-                  child:
-                      !_testStarted
-                          ? const Text(
-                            "點擊此處",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          )
-                          : const SizedBox.shrink(),
                 ),
               ),
               const SizedBox(height: 40),
@@ -460,7 +496,7 @@ class _AlertnessTestPageState extends State<AlertnessTestPage> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                child: const Text("開始測試"),
+                child: Text(l10n.startTest),
               ),
             ],
           ),

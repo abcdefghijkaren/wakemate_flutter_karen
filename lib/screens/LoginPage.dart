@@ -5,6 +5,9 @@ import 'home_page.dart';
 import 'RegisterPage.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:my_app/gen_l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
+import 'package:my_app/providers/locale_provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,48 +17,43 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // ✂️ 移除 nameController
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
   final String baseUrl = 'https://wakemate-api-4-0.onrender.com';
   bool isLoading = false;
 
-  // 🎨 色彩主題 (與您上次的優化設計一致)
-  final Color _primaryColor = const Color(0xFF1F3D5B); // 主深藍色
-  final Color _accentColor = const Color(0xFF4DB6AC); // 輔助色 - 青綠色
-  final Color _backgroundColor = const Color(0xFFF0F2F5); // 淺灰色背景
-  final Color _cardColor = Colors.white; // 卡片白色背景
-  final Color _errorColor = const Color(0xFFE53935); // 紅色
+  final Color _primaryColor = const Color(0xFF1F3D5B);
+  final Color _accentColor = const Color(0xFF4DB6AC);
+  final Color _backgroundColor = const Color(0xFFF0F2F5);
+  final Color _cardColor = Colors.white;
+  final Color _errorColor = const Color(0xFFE53935);
 
   @override
   void dispose() {
-    // ✂️ 移除 nameController.dispose()
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
   }
 
-  // **🎯 修改：將使用者資訊儲存到 SharedPreferences (不再儲存 Name)**
-  Future<void> _saveLoginInfo(String userId, String email) async {
+  Future<void> _saveLoginInfo(String userId, String email, String userName) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('userId', userId);
-    // 注意：由於登入不要求名稱，這裡不再儲存 userName
-    // 如果您後續需要顯示名稱，可能需要從 API 回傳的 data 中取得。
     await prefs.setString('userEmail', email);
+    await prefs.setString('userName', userName);
     await prefs.setBool('isLoggedIn', true);
   }
 
   Future<void> _loginUser() async {
-    // ✂️ 移除 name 相關邏輯
+    final l10n = AppLocalizations.of(context)!;
+
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
 
-    // 📌 檢查：現在只需檢查 Email 與密碼
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("請輸入 Email 與密碼")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.enterEmailAndPassword)),
+      );
       return;
     }
 
@@ -63,9 +61,7 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final headers = {'Content-Type': 'application/json'};
-      // **🎯 修改：API 請求 Body 僅包含 Email 和 Password**
       final body = jsonEncode({
-        // "name": name, // 移除 name
         "email": email,
         "password": password,
       });
@@ -85,12 +81,11 @@ class _LoginPageState extends State<LoginPage> {
         final data = jsonDecode(res.body);
         final String? uuidFromServer =
             data['user_id']?.toString() ?? data['id']?.toString();
-        // 嘗試從回傳資料中獲取名稱 (如果後端有回傳的話)
-        final String? nameFromServer = data['name']?.toString() ?? '用戶';
+        final String nameFromServer =
+            data['name']?.toString() ?? l10n.userDefaultName;
 
         if (uuidFromServer != null && uuidFromServer.isNotEmpty) {
-          // **🎯 關鍵步驟：儲存登入資訊 (不含 Name)**
-          await _saveLoginInfo(uuidFromServer, email);
+          await _saveLoginInfo(uuidFromServer, email, nameFromServer);
 
           final now = DateFormat('HH:mm').format(DateTime.now());
           final snackBar = SnackBar(
@@ -100,7 +95,7 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    "登入成功！$now",
+                    "${l10n.loginSuccess} $now",
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -116,46 +111,43 @@ class _LoginPageState extends State<LoginPage> {
           );
           ScaffoldMessenger.of(context).showSnackBar(snackBar);
 
-          // 導航到主頁面
-          // ⚠️ 注意：HomePage 現在需要處理 nameFromServer 可能為 null/'用戶' 的情況
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder:
-                  (context) => HomePage(
-                    userId: uuidFromServer,
-                    // 將從伺服器取得的名稱或預設值傳入
-                    userName: nameFromServer ?? '用戶',
-                    email: emailController.text.trim(),
-                  ),
+              builder: (context) => HomePage(
+                userId: uuidFromServer,
+                userName: nameFromServer,
+                email: emailController.text.trim(),
+              ),
             ),
           );
         } else {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text("登入成功，但無法取得使用者 ID")));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.loginSuccessButNoUserId)),
+          );
           print('Response Body: ${res.body}');
         }
       } else if (res.statusCode == 401) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text("❌ 登入失敗：Email 或密碼不正確"), // 📌 更新提示文字
+            content: Text("❌ ${l10n.loginFailed}"),
             backgroundColor: _errorColor,
           ),
         );
       } else {
         try {
-          final errorMsg = jsonDecode(res.body)['error'] ?? "伺服器發生未知錯誤";
+          final errorMsg =
+              jsonDecode(res.body)['error'] ?? l10n.unknownServerError;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text("❌ 登入失敗：$errorMsg"),
+              content: Text("❌ ${l10n.loginFailedWithReason(errorMsg)}"),
               backgroundColor: _errorColor,
             ),
           );
         } on FormatException {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text("❌ 登入失敗：伺服器回傳了無效的回應"),
+              content: Text("❌ ${l10n.loginFailedInvalidResponse}"),
               backgroundColor: _errorColor,
             ),
           );
@@ -164,29 +156,150 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text("錯誤：無法連線到伺服器"),
+          content: Text(l10n.networkErrorCannotConnectServer),
           backgroundColor: _errorColor,
         ),
       );
     } finally {
-      setState(() => isLoading = false);
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
+    }
+  }
+
+  String _getLanguageLabel(String localeCode, AppLocalizations l10n) {
+    switch (localeCode) {
+      case 'zh_TW':
+        return l10n.languageTraditionalChinese;
+      case 'en':
+        return l10n.languageEnglish;
+      case 'id':
+        return l10n.languageIndonesian;
+      case 'zh':
+        return l10n.languageTraditionalChinese;
+      default:
+        return l10n.languageSetting;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final screenHeight = MediaQuery.of(context).size.height;
+
+    final localeProvider = context.watch<LocaleProvider>();
+    final currentLocaleCode = localeProvider.localeCode;
 
     return Scaffold(
       backgroundColor: _backgroundColor,
       appBar: AppBar(
         title: Text(
-          "歡迎回來",
-          style: TextStyle(color: _primaryColor, fontWeight: FontWeight.bold),
+          l10n.welcomeBack,
+          style: TextStyle(
+            color: _primaryColor,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: PopupMenuButton<String>(
+              tooltip: l10n.languageSetting,
+              onSelected: (value) async {
+                if (value == 'zh') {
+                  await localeProvider.setLocale('zh_TW');
+                } else if (value == 'en') {
+                  await localeProvider.setLocale('en');
+                } else if (value == 'id') {
+                  await localeProvider.setLocale('id');
+                }
+              },
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'zh',
+                  child: Row(
+                    children: [
+                      if (currentLocaleCode == 'zh_TW' ||
+                          currentLocaleCode == 'zh')
+                        Icon(Icons.check, color: _accentColor, size: 18)
+                      else
+                        const SizedBox(width: 18),
+                      const SizedBox(width: 8),
+                      Text(l10n.languageTraditionalChinese),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'en',
+                  child: Row(
+                    children: [
+                      if (currentLocaleCode == 'en')
+                        Icon(Icons.check, color: _accentColor, size: 18)
+                      else
+                        const SizedBox(width: 18),
+                      const SizedBox(width: 8),
+                      Text(l10n.languageEnglish),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'id',
+                  child: Row(
+                    children: [
+                      if (currentLocaleCode == 'id')
+                        Icon(Icons.check, color: _accentColor, size: 18)
+                      else
+                        const SizedBox(width: 18),
+                      const SizedBox(width: 8),
+                      Text(l10n.languageIndonesian),
+                    ],
+                  ),
+                ),
+              ],
+              child: Container(
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: _primaryColor.withOpacity(0.15),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.language, color: _primaryColor, size: 18),
+                    const SizedBox(width: 6),
+                    Text(
+                      _getLanguageLabel(currentLocaleCode, l10n),
+                      style: TextStyle(
+                        color: _primaryColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.arrow_drop_down,
+                      color: _primaryColor,
+                      size: 20,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -220,7 +333,7 @@ class _LoginPageState extends State<LoginPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          "帳號登入",
+                          l10n.loginTitle,
                           style: TextStyle(
                             fontSize: 32.0,
                             fontWeight: FontWeight.w900,
@@ -229,37 +342,63 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          "請輸入您的 Email 與密碼", // 📌 更新提示文字
+                          l10n.loginDescription,
                           style: TextStyle(
                             fontSize: 16.0,
                             color: Colors.grey[600],
                             fontWeight: FontWeight.w400,
                           ),
                         ),
+                        const SizedBox(height: 20),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _primaryColor.withOpacity(0.04),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: _primaryColor.withOpacity(0.08),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.language,
+                                color: _primaryColor,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  "${l10n.languageSetting}: ${_getLanguageLabel(currentLocaleCode, l10n)}",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: _primaryColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                         const SizedBox(height: 36),
-
-                        // ✂️ 移除 名稱輸入框
-
-                        // --- Email 輸入框 ---
                         _buildTextField(
                           controller: emailController,
-                          labelText: "Email",
+                          labelText: l10n.email,
                           icon: Icons.email_outlined,
                           keyboardType: TextInputType.emailAddress,
                         ),
                         const SizedBox(height: 20),
-
-                        // --- 密碼輸入框 ---
                         _buildTextField(
                           controller: passwordController,
-                          labelText: "密碼",
+                          labelText: l10n.password,
                           icon: Icons.lock_outline,
                           obscureText: true,
                         ),
-
                         const SizedBox(height: 40),
-
-                        // --- 登入按鈕 ---
                         SizedBox(
                           width: double.infinity,
                           height: 55,
@@ -290,45 +429,39 @@ class _LoginPageState extends State<LoginPage> {
                                 constraints: const BoxConstraints(
                                   minHeight: 55,
                                 ),
-                                child:
-                                    isLoading
-                                        ? const SizedBox(
-                                          width: 24,
-                                          height: 24,
-                                          child: CircularProgressIndicator(
-                                            color: Colors.white,
-                                            strokeWidth: 2.5,
-                                          ),
-                                        )
-                                        : const Text(
-                                          "登入",
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
+                                child: isLoading
+                                    ? const SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2.5,
                                         ),
+                                      )
+                                    : Text(
+                                        l10n.login,
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
                               ),
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 20),
-
-                        // --- 註冊連結 ---
                         TextButton(
-                          onPressed:
-                              isLoading
-                                  ? null
-                                  : () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder:
-                                            (context) => const RegisterPage(),
-                                      ),
-                                    );
-                                  },
+                          onPressed: isLoading
+                              ? null
+                              : () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const RegisterPage(),
+                                    ),
+                                  );
+                                },
                           style: TextButton.styleFrom(
                             foregroundColor: _accentColor,
                             textStyle: const TextStyle(
@@ -338,9 +471,9 @@ class _LoginPageState extends State<LoginPage> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Text("還沒有帳號？"),
+                              Text(l10n.noAccount),
                               Text(
-                                "點此註冊",
+                                l10n.registerNow,
                                 style: TextStyle(
                                   decoration: TextDecoration.underline,
                                   decorationColor: _accentColor,
@@ -362,7 +495,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // 提取的 TextField 創建函數
   Widget _buildTextField({
     required TextEditingController controller,
     required String labelText,
